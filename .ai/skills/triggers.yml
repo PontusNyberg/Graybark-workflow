@@ -1,0 +1,57 @@
+# Skill Triggers — deterministic matching
+#
+# Used by main session in Step 4b (implement-issue.md) to match
+# issues to skills. Check BOTH files and keywords:
+# - files: match if issue affects these paths
+# - keywords: match if issue text (title+body) contains at least one keyword
+# - specialist: which specialist should run the skill
+#
+# Matching rule: files-match AND at least one keyword-match → inject skill.
+# When in doubt: include anyway (skill is an aid, not a mandate).
+#
+# TODO: Add skills for your project's recurring patterns.
+# Examples below — customize or remove as needed.
+
+# example-api-crud:
+#   file: .ai/skills/example-api-crud.md
+#   specialist: backend
+#   files:
+#     - "api/routes/"
+#   keywords:
+#     - "CRUD"
+#     - "API endpoint"
+#     - "REST"
+#
+# example-new-page:
+#   file: .ai/skills/example-new-page.md
+#   specialist: frontend
+#   files:
+#     - "src/pages/"
+#     - "src/components/"
+#   keywords:
+#     - "new page"
+#     - "form"
+#     - "dashboard"
+
+# --- Orchestrator skills (matched manually, not via file lists) ---
+
+compound-learning:
+  file: .ai/skills/compound-learning.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "compound"
+    - "learning"
+    - "document solution"
+  # Trigger: Automatically after Step 10 in implement-issue.md
+
+ideate:
+  file: .ai/skills/ideate.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "ideate"
+    - "improvements"
+    - "tech debt"
+    - "what should we improve"
+  # Trigger: Manual — during sprint planning or on request

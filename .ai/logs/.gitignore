@@ -1,0 +1,7 @@
+# Iteration logs are session-local — not committed
+*.md
+*.json
+*.txt
+
+# Keep this gitignore
+!.gitignore

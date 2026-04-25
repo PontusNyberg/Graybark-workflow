@@ -32,6 +32,15 @@ mkdir -p .ai/logs
 gh issue view <ISSUE_NR> --json title,body > .ai/logs/current-issue.json
 ```
 
+Check whether any open PR already addresses this issue:
+
+```bash
+# Check if issue-nr is mentioned in an open PR's title, body, or branch
+# If a hit → stop and report to the user before continuing
+```
+
+If you find an open PR covering the same scope: **stop**. Ask the user whether to build on the PR, take it over, or wait. Restarting work that is already in flight in an unreviewed PR is duplicate work and discards the contributor's (human or other session) effort.
+
 Determine which rules apply based on affected files (see rule matrix in `.ai/CLAUDE.md`).
 
 ### Step 2: Validate issue
@@ -44,11 +53,13 @@ If unclear → `needs-clarification`, **STOP**.
 
 ### Step 3: Consult advisors (if relevant)
 
-Spawn UX or business advisors via Agent tool if the issue touches their domain:
+Spawn UX or business advisors via Agent tool if the issue touches their domain.
+Advisors run on **Haiku** (short, structured output — Opus is overkill).
 
 ```
 Agent(
   description: "UX advisor: advice for issue #<NR>",
+  model: "haiku",
   prompt: """
     <contents from .claude/agents/product-designer.md>
 
@@ -124,6 +135,8 @@ Dispatch all specialists in **the same message** — Claude Code runs them simul
 
 **Prompt ordering (important for token efficiency):**
 
+Information in the middle of long prompts risks being "lost" (lost-in-middle). Structure prompts so the most important — the task and test requirements — comes **last** (recency bias):
+
 1. Agent definition (background/role)
 2. Rules (constraints)
 3. Skills (if match)
@@ -131,9 +144,12 @@ Dispatch all specialists in **the same message** — Claude Code runs them simul
 5. Work package (what to do)
 6. Test requirements (last — the most important thing to remember)
 
+**Prompt budget:** Keep specialist prompts under ~4000 tokens. If agent definition + rules + skill exceeds this — trim the agent definition to the essentials and reference files the agent can read on demand.
+
 ```
 Agent(
   description: "Backend: issue #<NR>",
+  model: "opus",
   isolation: "worktree",
   prompt: """
     <contents from .claude/agents/backend-developer.md>
@@ -158,6 +174,7 @@ Agent(
 
 Agent(
   description: "Frontend: issue #<NR>",
+  model: "sonnet",
   isolation: "worktree",
   prompt: """
     <contents from .claude/agents/frontend-developer.md>
@@ -243,6 +260,10 @@ Spawn reviewers in parallel via Agent tool. Always 3 generic + optional speciali
 
 Reviewers do **not** need worktrees — they don't change files, only analyze diff.
 
+**Model tier per reviewer:**
+- Rev-Correctness + Rev-Security → **Opus** (subtle semantic analysis, security-critical)
+- Rev-Conventions → **Sonnet** (pattern matching against an explicit checklist)
+
 ```
 # Prepare diff (run in Bash)
 git diff main...HEAD > /tmp/diff-full.txt
@@ -252,6 +273,7 @@ DIFF_LINES=$(wc -l < /tmp/diff-full.txt)
 
 Agent(
   description: "Review: correctness",
+  model: "opus",
   prompt: """
     <contents from .ai/agents/reviewer-correctness.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -261,6 +283,7 @@ Agent(
 
 Agent(
   description: "Review: security",
+  model: "opus",
   prompt: """
     <contents from .ai/agents/reviewer-security.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -270,6 +293,7 @@ Agent(
 
 Agent(
   description: "Review: conventions",
+  model: "sonnet",
   prompt: """
     <contents from .ai/agents/reviewer-conventions.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -324,6 +348,18 @@ Warnings requiring scope change → log as "known warning, out of scope".
 
 ### Step 10: Finalize
 
+#### Landing Protocol (mandatory postcondition)
+
+The issue is not done until every step below is completed. You are personally responsible for each step.
+
+1. Commit locally (format below)
+2. Push the branch to origin
+3. Create the PR via `gh pr create` (or `mcp__github__create_pull_request` if the user requested it)
+4. Verify that `git status` shows "up to date with origin/<branch>"
+5. Report the PR URL to the user
+
+**The plane has not landed until `git push` is complete.** Never say "ready to push when you want" — you push it yourself. Leaving work unpushed strands it locally and blocks the next session.
+
 ```bash
 # Stage ONLY files changed by specialists — NEVER git add -A
 git add <specific changed files>
@@ -351,6 +387,28 @@ Generated with [Claude Code](https://claude.com/claude-code)
 PRBODY
 )"
 ```
+
+### Step 10.5: Handoff prompt (if the session ends before the issue is done)
+
+If you must end the session mid-work (compaction, tokens exhausted, user disconnects), write a **handoff prompt** the user can paste directly into the next session. This saves tokens massively — the next LLM doesn't need to read the entire prior conversation.
+
+Format:
+
+```
+## Continue work on #<NR>: <title>
+
+**Status:** <short — iteration X/4, package A done, package B in progress, etc.>
+**Branch:** <branch name>
+**Latest commit:** <sha> — <message>
+**Next step:** <what to do next, concretely>
+**Blockers:** <if any, with link to relevant log or file>
+**Files touched:** <list>
+**Context:** <2-3 sentences about why-decisions not visible from the diff>
+```
+
+Write the prompt to the user directly at the end of the session. Don't repeat the entire plan — point to `.ai/logs/<nr>.md` for details.
+
+This applies to both main session and subagent sessions handing off to an orchestrator.
 
 ### Step 11: Compound Learning
 
@@ -413,22 +471,55 @@ if iteration >= 4:
 
 | State | Meaning |
 |-------|---------|
-| `needs-human` | Max iterations reached |
-| `needs-clarification` | Issue unclear |
+| `needs-human-p2` | Max iterations reached. You have a concrete hypothesis about what's needed. Likely a quick fix. |
+| `needs-human-p1` | Max iterations reached. You don't know how to proceed. 3+ fix attempts have failed for different reasons. |
+| `needs-human-p0` | Issue requires an architecture or product decision. Implementation is not meaningful until the decision is made. |
+| `needs-clarification` | Issue unclear — acceptance criteria are vague or contradictory. |
 
-**On `needs-human`:**
+### Choosing a level — rubric
+
+**Pick P2 if:**
+- Iteration 3 or 4 failed for the same concrete reason (e.g. "test X fails with Y")
+- You have a concrete hypothesis about why
+- The fix is mechanical (swap a library, change an assertion, adjust an env var)
+
+**Pick P1 if:**
+- 3+ different fix attempts failed for different reasons
+- You understand what should happen but not why it isn't happening
+- The test suite or verify.sh behaves inconsistently
+- Reviewers give contradictory signals
+
+**Pick P0 if:**
+- Issue requires an architecture decision (data model, pattern choice, paywall placement)
+- Acceptance criteria are vague or contradictory
+- Implementation impacts other open issues that must sync
+- Security or product decision that must be approved
+
+**You MUST pick a level** when escalating. The default "needs-human" without a grade is not allowed. If you can't choose between P1 and P2 — pick P1 (the more cautious one).
+
+### On escalation — format
+
 ```markdown
-## Needs Human Review
+## Needs Human Review (P<level>)
 
 Issue: #<NR>
 Iterations: 4/4
+Severity: P<0|1|2> — <short justification per rubric>
+
 Remaining problems:
 - <unresolved blockers/verify errors>
 
 What was tried:
 - Iteration 1: <specialist, result>
 - Iteration 2: <change, result>
+- Iteration 3: <...>
+- Iteration 4: <...>
+
+Next step (your recommendation):
+- <what you think is needed>
 ```
+
+Label the GitHub issue with the corresponding label: `needs-human-p0`, `needs-human-p1`, or `needs-human-p2`. Labels need to be created manually in the repo the first time (suggested colors: red for P0, orange for P1, yellow for P2). Document this as a TODO if labels are missing.
 
 ## Log format
 

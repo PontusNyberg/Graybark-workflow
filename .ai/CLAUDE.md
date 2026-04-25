@@ -144,14 +144,29 @@ After verify.sh, dispatch reviewers in parallel via Agent tool (without worktree
 git diff main...HEAD > /tmp/diff-full.txt
 
 # Dispatch all reviewers in the same message:
-Agent(description: "Review: correctness", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: security", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: conventions", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: correctness", model: "opus", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: security", model: "opus", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: conventions", model: "sonnet", prompt: "<reviewer-def + issue + diff>")
 Agent(description: "Review: specialist cross-review", prompt: "<cross-reviewer-def + issue + diff>")
 
 # Evaluate results
 bash .ai/scripts/evaluate-reviews.sh
 ```
+
+**Model tier per reviewer:**
+- Rev-Correctness + Rev-Security → **Opus** (subtle semantic analysis, security-critical)
+- Rev-Conventions → **Sonnet** (pattern matching against an explicit checklist)
+- Specialist cross-reviewer → use the specialist's own tier
+
+## Skills — reusable agent routines
+
+Skills are executable routines injected into specialist prompts to codify recurring patterns. They live in `.ai/skills/` and require PR review before activation.
+
+**Matching:** In Step 4b of implement-issue, the main session matches the issue against skills based on `triggers.yml` (file paths AND keywords).
+
+**Injection:** A matching skill is included in the specialist prompt after rules but before the work package — see `.ai/workflows/implement-issue.md` Step 5.
+
+**Lifecycle:** See `.ai/workflows/skill-lifecycle.md` (if defined for your project).
 
 ## Iteration limit
 

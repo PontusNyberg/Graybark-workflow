@@ -15,6 +15,16 @@ Before writing or changing a single line of code, these steps MUST be completed:
 If the user says "go ahead", "implement", or similar — start with step 1, NOT with code.
 Jumping straight to coding without pre-flight is a workflow violation.
 
+### Pre-commit hook (secret scan)
+
+A defense-in-depth pre-commit hook in `.githooks/pre-commit` (if you create one) blocks commits with secret patterns (service-role keys, live API keys, JWTs, etc.). Activate the hook locally ONCE per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook is a safety net — it does not replace discipline around never committing secrets in cleartext.
+
 ### Instruction priority
 
 1. **User's explicit instructions** (direct requests, conversation context) — highest

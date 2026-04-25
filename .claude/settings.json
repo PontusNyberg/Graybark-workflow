@@ -2,5 +2,51 @@
   "permissions": {
     "allow": [],
     "deny": []
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"WORKFLOW REMINDER. Before writing code: (1) Read .ai/rules/always.md (2) Read .ai/workflows/implement-issue.md (3) Follow steps 1-4 including creating .ai/logs/planned-files.txt (4) Load context-relevant rules (on-frontend.md, on-backend.md, etc.) (5) Delegate to specialists via Agent tool with isolation: worktree. Edit/Write are blocked until planned-files.txt exists. Skipping pre-flight is a workflow violation.\"}}'",
+            "statusMessage": "Loading workflow gate...",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "FILE=$(cat | jq -r '.tool_input.file_path // empty') && case \"$FILE\" in *.md|*settings.json|*settings.local.json|*.ai/logs/*) exit 0 ;; esac && if [ ! -f .ai/logs/planned-files.txt ]; then echo 'BLOCKED: .ai/logs/planned-files.txt missing. Run pre-flight workflow (.ai/workflows/implement-issue.md steps 1-4) before writing code.'; exit 1; fi",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add \\.$|git add \\. '; then echo 'BLOCKED: Use explicit file names instead of git add -A / git add .'; exit 1; fi",
+            "timeout": 10000
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -q 'git commit'; then if ! [ -f .ai/scripts/verify.sh ]; then exit 0; fi; if ! [ -f .ai/logs/test-results.json ]; then echo 'Reminder: run bash .ai/scripts/verify.sh before committing.'; fi; fi",
+            "timeout": 10000
+          }
+        ]
+      }
+    ]
   }
 }

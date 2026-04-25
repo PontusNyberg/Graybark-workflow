@@ -55,3 +55,23 @@ ideate:
     - "tech debt"
     - "what should we improve"
   # Trigger: Manual — during sprint planning or on request
+
+parallel-dispatch:
+  file: .ai/skills/parallel-dispatch.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "parallel"
+    - "worktree"
+    - "independent packages"
+  # Trigger: Step 5 of implement-issue when 2+ work packages identified
+
+compress-logs:
+  file: .ai/skills/compress-logs.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "sprint close"
+    - "compress logs"
+    - "archive logs"
+  # Trigger: Sprint close — final step of retrospective workflow

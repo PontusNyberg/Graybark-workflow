@@ -45,7 +45,7 @@ You tell Claude Code to "implement issue #42" and it writes code. Sometimes grea
     Compound Learning         ← Document what was learned
 ```
 
-If verify or review fails → the orchestrator sends feedback to the specialist and retries. Max 4 iterations, then it escalates to you.
+If verify or review fails → the orchestrator sends feedback to the specialist and retries. Max 4 iterations, then it escalates with a graded label: `needs-human-p2` (quick fix possible), `needs-human-p1` (unclear how to proceed), or `needs-human-p0` (requires architectural or product decision).
 
 ## What's in the box
 
@@ -56,8 +56,10 @@ If verify or review fails → the orchestrator sends feedback to the specialist 
 | **Advisors** | UX designer, scope guardian | Advise without coding |
 | **Reviewers** | correctness, security, conventions | Parallel diff review with JSON verdicts |
 | **Quality gate** | `verify.sh` | Blocks on lint, type, test, secret, scope failures |
-| **Skills** | compound-learning, parallel-dispatch, ideate | Reusable agent routines |
+| **Ship-check** | `ready.sh` | Branch-ship-readiness audit before landing |
+| **Skills** | compound-learning, parallel-dispatch, ideate, compress-logs | Reusable agent routines |
 | **Rules** | always, on-frontend, on-backend, on-migration, on-testing | Injected into agent prompts based on affected files |
+| **Hooks** | `.claude/settings.json` | Workflow-gate, `git add -A`-blocker, verify-before-commit nudge |
 
 ## Quick start
 
@@ -116,11 +118,13 @@ That's it. The workflow handles the rest.
 │   └── reviewer-conventions.md  # "Does it follow our patterns?"
 ├── scripts/
 │   ├── verify.sh                # Quality gate (customize this!)
+│   ├── ready.sh                 # Branch-ship-readiness audit before landing
 │   └── evaluate-reviews.sh      # Parses reviewer JSON verdicts
 ├── skills/
 │   ├── compound-learning.md     # Post-implementation learning capture
 │   ├── parallel-dispatch.md     # Dependency analysis for parallel agents
 │   ├── ideate.md                # Proactive improvement identification
+│   ├── compress-logs.md         # Compress iteration logs for long sessions
 │   └── triggers.yml             # When to inject which skill
 └── logs/                        # Session-local (gitignored)
 
@@ -132,7 +136,7 @@ That's it. The workflow handles the rest.
 │   ├── product-designer.md      # UX advice (no code)
 │   ├── product-skeptic.md       # Scope control (no code)
 │   └── TEAM.md                  # Who does what
-└── settings.json
+└── settings.json                # Hooks: workflow-gate, git-add-A blocker, verify nudge
 
 CLAUDE.md                        # Entry point — Claude reads this first
 docs/
@@ -184,8 +188,10 @@ Every multi-iteration issue teaches something. The `compound-learning` skill cap
 | 7. Verify quality | Run verify.sh (lint, types, tests, secrets) | verify.sh |
 | 8. Review | Parallel review (3 generic + cross-review) | Reviewers |
 | 9. Evaluate | Parse JSON verdicts, check for blockers | evaluate-reviews.sh |
-| 10. Commit | Stage, commit, push, create PR | Orchestrator |
+| 10. Land | Stage, commit, push, create PR — verify branch is up-to-date (Landing Protocol) | Orchestrator |
 | 11. Learn | Document insights in docs/solutions/ | Orchestrator |
+
+Step 10's **Landing Protocol** treats an issue as incomplete until `git status` confirms the branch is committed, pushed, and up to date with the remote — no "I committed locally" half-states.
 
 If step 7 or 9 fails → back to step 5 with error context. Max 4 loops.
 
@@ -203,7 +209,9 @@ After copying into your project:
 - [ ] `.ai/rules/on-migration.md` — Your migration tool and naming conventions
 - [ ] `.ai/rules/on-testing.md` — Test runner, file placement, mocking strategy
 - [ ] `.ai/scripts/verify.sh` — **Critical:** add your linter, type checker, and test commands
+- [ ] `.ai/scripts/ready.sh` — Replace `TODO/REPO` placeholder with your `owner/repo`
 - [ ] `.ai/skills/triggers.yml` — Add skills for your recurring patterns
+- [ ] `.claude/settings.json` — Review hooks (workflow-gate paths, etc.) and adjust to your project
 - [ ] `.gitignore` — Your build output, dependencies, etc.
 
 ## Requirements

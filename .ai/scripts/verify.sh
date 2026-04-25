@@ -103,17 +103,59 @@ section "Secrets Check"
 if [ -n "$DIFF_FILES" ]; then
   SECRETS_FOUND=false
 
-  # Block .env files
+  # Compute the set of files that are *deleted* in this diff. Removing a
+  # tracked secret file is the fix, not the bug — we must not flag those
+  # even when the working tree still has a local copy.
+  case "$MODE" in
+    --staged)
+      DELETED_FILES=$(git diff --cached --diff-filter=D --name-only 2>/dev/null || true)
+      ;;
+    --ci)
+      DELETED_FILES=$(git diff "$BASE"...HEAD --diff-filter=D --name-only 2>/dev/null || true)
+      ;;
+    *)
+      if [ "${STAGED_COUNT:-0}" -gt 0 ]; then
+        DELETED_FILES=$(git diff --cached --diff-filter=D --name-only 2>/dev/null || true)
+      else
+        DELETED_FILES=$(git diff --diff-filter=D --name-only 2>/dev/null || true)
+      fi
+      ;;
+  esac
+
+  is_deleted_in_diff() {
+    [ -z "$DELETED_FILES" ] && return 1
+    echo "$DELETED_FILES" | grep -qxF "$1"
+  }
+
+  # Block .env files — but not template/example files, and not pure deletions
+  # (deleting a tracked .env is how we clean up leaked secrets).
   while IFS= read -r file; do
     [ -z "$file" ] && continue
-    if [[ "$file" =~ ^\.env(\..+)?$ ]]; then
+    base=$(basename "$file")
+    # Template/example files are safe — they contain placeholders by design
+    if [[ "$base" == *.example ]] || [[ "$base" == *.sample ]] || [[ "$base" == *.template ]]; then
+      continue
+    fi
+    # File deletions are safe — removing a leaked secret is the fix.
+    if [ ! -e "$file" ] || is_deleted_in_diff "$file"; then
+      continue
+    fi
+    if [[ "$file" =~ ^\.env(\..+)?$ ]] || [[ "$base" =~ ^\.env(\..+)?$ ]]; then
       fail "Changed secret file: $file"
       SECRETS_FOUND=true
     fi
   done <<< "$DIFF_FILES"
 
-  # Pattern-based secret detection in diffs
-  SECRET_SCAN_FILES=$(echo "$DIFF_FILES" | grep -vE '\.(md|yml|yaml)$' | grep -v '^\.ai/' || true)
+  # Pattern-based secret detection in diffs.
+  # Exclude documentation, env-templates, and the gitleaks config (which
+  # describes pattern shapes in comments, so it would match itself).
+  SECRET_SCAN_FILES=$(echo "$DIFF_FILES" \
+    | grep -vE '\.(md|yml|yaml)$' \
+    | grep -v '^\.ai/' \
+    | grep -vE '\.(example|sample|template)$' \
+    | grep -v '^\.githooks/' \
+    | grep -v '^\.gitleaks\.toml$' \
+    || true)
 
   if [ -n "$SECRET_SCAN_FILES" ]; then
     SECRET_DIFF=""

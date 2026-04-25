@@ -1,3 +1,10 @@
+---
+name: TODO UX-advisor name
+description: Product designer / UX advisor (does not code)
+model: haiku
+color: purple
+---
+
 # Product Designer / UX Advisor
 
 ## Role

@@ -75,6 +75,19 @@ If a necessary tool only has interactive mode → stop and ask the user to run i
 - **Poka-Yoke** — design code that makes it hard to make mistakes (types, enums, required params > optional + runtime validation).
 - **Build only what's needed** (YAGNI) — no speculative code for future requirements.
 
+### Decision ladder before generating code
+
+Before writing new code — walk the steps in order and stop at the first one that solves the problem. The best code is the code you never wrote.
+
+1. **Does this need to exist?** Solve the problem away if you can — unneeded code is unneeded maintenance.
+2. **Is it in the standard library / language?** (e.g. `Intl`, `structuredClone`, `Array.prototype` methods)
+3. **Is there a native platform feature?** (e.g. `<input type="date">` instead of a date-picker package, CSS instead of JS)
+4. **Is it already an installed dependency?** Reuse — don't add a new package for something we already have.
+5. **Can it be done in one line?** Prefer that over a new abstraction/wrapper.
+6. **Only then:** write minimal code with proper error handling and types.
+
+Applies to specialists during implementation AND the orchestrator at scope decisions. Adding a package or an abstraction requires motivating why steps 1–5 weren't enough.
+
 ## Testing
 
 - NEVER change a test to make it pass — fix the code instead
@@ -96,6 +109,8 @@ If a necessary tool only has interactive mode → stop and ask the user to run i
 - Specialist reported success (verify independently)
 
 **Red flags in your own language:** If you write "should", "probably", "seems to work" — STOP. Run the command and show evidence.
+
+**Date empirical platform findings.** When you verify a non-obvious platform behavior (GitHub API quirk, framework peculiarity, cloud-provider behavior) and document it in a workflow/skill file — record date + context: *"Verified empirically on PR #X, YYYY-MM-DD"*. It separates proven knowledge from assumption and shows when a finding may have gone stale.
 
 ## Systematic debugging
 

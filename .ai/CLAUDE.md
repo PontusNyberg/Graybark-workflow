@@ -22,6 +22,7 @@ Claude Code (main session / orchestrator)
         ├── Correctness reviewer
         ├── Security reviewer
         ├── Conventions reviewer
+        ├── Lifecycle reviewer
         └── Specialist reviewer (cross-review)
 ```
 
@@ -67,7 +68,7 @@ Agent(isolation: "worktree", prompt: "Frontend: UI...")
 ### What does NOT need worktrees?
 
 - **Advisors** (scope-check, UX, business) — don't change files
-- **Reviewers** (correctness, security, conventions) — analyze diff, change nothing
+- **Reviewers** (correctness, security, conventions, lifecycle) — analyze diff, change nothing
 - **Small issues** (<20 lines) — orchestrator codes directly
 
 ## Agent overview
@@ -96,6 +97,7 @@ Defined in `.claude/agents/`. Dispatched by main session via Agent tool with `is
 | **Correctness** | `.ai/agents/reviewer-correctness.md` | Acceptance criteria, logic, edge cases |
 | **Security** | `.ai/agents/reviewer-security.md` | Auth, injections, data leaks |
 | **Conventions** | `.ai/agents/reviewer-conventions.md` | Code style, patterns |
+| **Lifecycle** (conditional) | `.ai/agents/reviewer-lifecycle.md` | State machines, signal journeys across module boundaries, resource cleanup, second-occurrence bugs — dispatched only for stateful diffs |
 
 ## Specialist routing — who codes what?
 
@@ -144,35 +146,37 @@ After verify.sh, dispatch reviewers in parallel via Agent tool (without worktree
 git diff main...HEAD > /tmp/diff-full.txt
 
 # Dispatch all reviewers in the same message:
-Agent(description: "Review: correctness", model: "opus", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: security", model: "opus", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: conventions", model: "sonnet", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: correctness", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: security", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: conventions", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: lifecycle", prompt: "<reviewer-def + issue + diff>")  # conditional — only for stateful diffs (trigger in implement-issue Step 8)
 Agent(description: "Review: specialist cross-review", prompt: "<cross-reviewer-def + issue + diff>")
 
 # Evaluate results
 bash .ai/scripts/evaluate-reviews.sh
 ```
 
-**Model tier per reviewer:**
-- Rev-Correctness + Rev-Security → **Opus** (subtle semantic analysis, security-critical)
-- Rev-Conventions → **Sonnet** (pattern matching against an explicit checklist)
-- Specialist cross-reviewer → use the specialist's own tier
-
-## Skills — reusable agent routines
-
-Skills are executable routines injected into specialist prompts to codify recurring patterns. They live in `.ai/skills/` and require PR review before activation.
-
-**Matching:** In Step 4b of implement-issue, the main session matches the issue against skills based on `triggers.yml` (file paths AND keywords).
-
-**Injection:** A matching skill is included in the specialist prompt after rules but before the work package — see `.ai/workflows/implement-issue.md` Step 5.
-
-**Lifecycle:** See `.ai/workflows/skill-lifecycle.md` (if defined for your project).
-
 ## Iteration limit
 
 - **Max 4 iterations** (implementation + verify + review = 1 iteration)
-- If iteration 4 fails → `needs-human`
+- If iteration 4 fails → escalate with grading: `needs-human-p2` (quick-fix hypothesis), `needs-human-p1` (unclear how to proceed), or `needs-human-p0` (requires an architecture/product decision). See the rubric in `workflows/implement-issue.md` → "Escalation states".
 - Every iteration is logged in `.ai/logs/<issue-nr>.md`
+
+## Skills — reusable agent routines
+
+Skills live in `.ai/skills/` and are matched in Step 4b of implement-issue via `triggers.yml`. New skills require PR review — see `workflows/skill-lifecycle.md`.
+
+| Skill | Type | Trigger |
+|-------|------|---------|
+| `skills/parallel-dispatch.md` | Orchestrator | 2+ independent work packages |
+| `skills/compound-learning.md` | Orchestrator | After a non-trivial issue (Step 11) |
+| `skills/ideate.md` | Orchestrator | Sprint planning or manual |
+| `skills/backlog-reconcile.md` | Orchestrator | Sprint start, or when backlog/plans drifted from the code |
+| `skills/incident-fix-scoping.md` | Orchestrator | Issue labeled `incident`/`postmortem` or branch `hotfix/*` |
+| `skills/compress-logs.md` | Orchestrator | Sprint close — final step of the retrospective |
+| `skills/workflow-sync.md` | Orchestrator | Sprint start, or when a core-manifest file changed |
+
+TODO: Add project-specific specialist skills (injected into specialist prompts) as patterns emerge.
 
 ## Prompt construction (token efficiency)
 

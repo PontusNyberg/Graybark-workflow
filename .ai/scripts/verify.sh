@@ -315,7 +315,8 @@ fi
 section "Review Gate"
 
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-if [[ "$CURRENT_BRANCH" == sprint-* ]]; then
+if [[ "$CURRENT_BRANCH" == sprint* || "$CURRENT_BRANCH" == feat/* || "$CURRENT_BRANCH" == fix/* || "$CURRENT_BRANCH" == hotfix/* ]]; then
+  # Lifecycle is conditional (stateful diffs only — see implement-issue Step 8) and handled separately below
   REVIEW_FILES=(/tmp/review-correctness.json /tmp/review-security.json /tmp/review-conventions.json)
   MISSING_REVIEWS=()
   FAILED_REVIEWS=()
@@ -334,6 +335,14 @@ if [[ "$CURRENT_BRANCH" == sprint-* ]]; then
     fi
   done
 
+  # Conditional lifecycle review: check verdict only if the reviewer was dispatched
+  if [ -s /tmp/review-lifecycle.json ]; then
+    verdict=$(grep -o '"verdict"[[:space:]]*:[[:space:]]*"[^"]*"' /tmp/review-lifecycle.json 2>/dev/null | head -1 | grep -o '"[^"]*"$' | tr -d '"')
+    if [ "$verdict" = "fail" ]; then
+      FAILED_REVIEWS+=("lifecycle")
+    fi
+  fi
+
   if [ ${#MISSING_REVIEWS[@]} -gt 0 ]; then
     fail "Reviews missing: ${MISSING_REVIEWS[*]} — run parallel review before commit"
   elif [ ${#FAILED_REVIEWS[@]} -gt 0 ]; then
@@ -342,7 +351,7 @@ if [[ "$CURRENT_BRANCH" == sprint-* ]]; then
     pass "All reviews completed and approved"
   fi
 else
-  pass "Review gate — not a sprint branch, skipping"
+  pass "Review gate — not a sprint/feat/fix/hotfix branch, skipping"
 fi
 
 # ─── Test results JSON ──────────────────────────────────────────

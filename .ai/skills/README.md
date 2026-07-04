@@ -1,49 +1,46 @@
-# Skills — Reusable agent routines
+# Skills
 
-## What is a skill?
+Skills are reusable agent routines that codify recurring patterns. They are injected into specialist prompts when a trigger matches.
 
-A skill is an **executable routine** a specialist agent can follow to solve a recurring problem. Unlike rules (which say "don't do X") and templates (static text), a skill is a context-aware instruction that:
+## How skills work
 
-1. Has a **trigger** — when to use it
-2. Has **steps** — what the agent should do, in order
-3. Has **test requirements** — what must be verified
-4. **Adapts** to the issue — the agent reads the issue and adjusts each step
+1. In Step 4b of `implement-issue.md`, the orchestrator checks `triggers.yml`
+2. If the issue's planned files AND keywords match a skill → the skill is injected into the specialist prompt
+3. The specialist uses the skill as guidance (not a rigid script)
 
-## Why skills?
+## Creating a new skill
 
-Sprint 1: Specialist takes 4 iterations on a new API endpoint (auth, validation, error handling — all from scratch).
-Sprint 3: Specialist has a skill that codifies the pattern → 1-2 iterations.
+1. Identify a recurring pattern (same type of work done 3+ times)
+2. Write the skill in `.ai/skills/<name>.md`
+3. Add trigger entry in `triggers.yml`
+4. Submit via PR for review
 
-The win is **compounding** — each sprint becomes faster without sacrificing quality.
+## Skill types
 
-## How skills are used
+- **Specialist skills** — injected into specialist prompts (frontend, backend)
+- **Orchestrator skills** — run by the main session (compound-learning, ideate, parallel-dispatch, ...)
 
-### In implement-issue.md, Step 5 (spawn specialist)
+## Injection pattern
 
-The main session matches the issue against available skills (via `triggers.yml`) and injects them into the specialist prompt:
+Matching skills are injected into the specialist prompt via the Agent tool, after rules but before the work package:
 
 ```
 Agent(
+  subagent_type: "<your specialist agent from .claude/agents/>",  # agent definition loads via subagent_type — do NOT inline the agent file
   isolation: "worktree",
   prompt: """
-    <agent definition>
-    <relevant rules>
-    <matching skill — injected here>
+    <.ai/rules/always.md>
+    <.ai/rules/<context>.md>
+    <.ai/skills/<matching-skill>.md>   ← skill injected here if it matches
 
+    ISSUE: <contents from .ai/logs/current-issue.json>
     WORK PACKAGE: ...
-    ISSUE: ...
+    TEST REQUIREMENTS: ...
   """
 )
 ```
 
-### Matching logic
-
-The main session decides if a skill matches based on:
-1. The skill's **trigger section** (keywords in the issue)
-2. Which **specialist** should run
-3. Which **files** are affected
-
-A skill is an **aid**, not a mandate. The specialist may deviate if the issue requires it.
+(Same pattern as `implement-issue.md` Step 5 — `subagent_type` supplies the agent's system prompt; the prompt carries rules, skills and the work package.)
 
 ## Skill format
 
@@ -59,7 +56,6 @@ A skill is an **aid**, not a mandate. The specialist may deviate if the issue re
 ## Steps
 1. <Step with context about why>
 2. <Step with code example if relevant>
-...
 
 ## Test requirements
 - <Mandatory tests>
@@ -82,7 +78,8 @@ Skills have three paths into the system:
 
 ## Lifecycle
 
-See `.ai/workflows/skill-lifecycle.md` for details (if defined for your project).
+See `.ai/workflows/skill-lifecycle.md` for the full lifecycle, including the security
+gate for skills from external sources.
 
 ```
 Retrospective discovers pattern
@@ -92,29 +89,16 @@ Retrospective discovers pattern
         → Skill active from next issue
 ```
 
-## Creating a new skill
-
-1. Identify a recurring pattern (same type of work done 3+ times)
-2. Write the skill in `.ai/skills/<name>.md`
-3. Add trigger entry in `triggers.yml`
-4. Submit via PR for review
-
-## Skill types
-
-- **Specialist skills** — injected into specialist prompts (frontend, backend, etc.)
-- **Orchestrator skills** — run by the main session
-
 ## Active skills
 
-### Orchestrator skills
-
-| Skill | Trigger |
-|-------|---------|
-| [compound-learning](compound-learning.md) | After non-trivial issue (Step 11) |
-| [parallel-dispatch](parallel-dispatch.md) | 2+ independent work packages |
-| [ideate](ideate.md) | Sprint planning or manual |
-| [compress-logs](compress-logs.md) | Sprint close — final step of retro |
-
-### Specialist skills
+| Skill | Type | Purpose |
+|-------|------|---------|
+| `compound-learning.md` | Orchestrator | Document learnings after implementation (Step 11) |
+| `parallel-dispatch.md` | Orchestrator | Dependency analysis for parallel work |
+| `ideate.md` | Orchestrator | Proactive improvement identification |
+| `backlog-reconcile.md` | Orchestrator | Sync backlog/plans against actual code (sprint start) |
+| `incident-fix-scoping.md` | Orchestrator | Split incident fixes into at most 3 focused PRs (Step 4a) |
+| `compress-logs.md` | Orchestrator | Extract lessons from iteration logs at sprint close, archive raw logs |
+| `workflow-sync.md` | Orchestrator | Keep the workflow core in sync with the shared template (upstream) |
 
 TODO: Add project-specific specialist skills as patterns emerge.

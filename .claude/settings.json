@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"STOP — WORKFLOW REQUIRED. Before writing any code you MUST: (1) Read .ai/rules/always.md (2) Read .ai/workflows/implement-issue.md and follow steps 1-4 including creating .ai/logs/planned-files.txt (3) Load matching on-* rules (on-frontend, on-backend, on-migration, on-testing) (4) Dispatch specialists (TODO: your specialist agent names from .claude/agents/) via Agent tool with isolation: worktree. Edit/Write tools are BLOCKED until planned-files.txt exists. Exception: trivial issues (<20 lines, pure text/config/rename) may be coded directly. Skipping pre-flight is a workflow violation.\"}}'",
+            "command": "printf '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"STOP — WORKFLOW REQUIRED. Before writing any code you MUST: (1) Read .ai/rules/always.md (2) Read .ai/workflows/implement-issue.md and follow steps 1-4 including creating .ai/logs/planned-files.txt (3) Load matching on-* rules (on-frontend, on-backend, on-migration, on-testing) (4) Dispatch specialists (TODO: your specialist agent names from .claude/agents/) via Agent tool with isolation: worktree. Edit/Write tools are BLOCKED until planned-files.txt exists. Exception: trivial issues (<20 lines, pure text/config/rename) may be coded directly by the orchestrator — still create a one-line planned-files.txt first to pass the Edit/Write gate. Skipping pre-flight is a workflow violation.\"}}'",
             "statusMessage": "Loading workflow gate...",
             "timeout": 10
           }
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add \\.$|git add \\. '; then echo 'BLOCKED: Stage explicit filenames instead of git add -A / git add . (see CLAUDE.md hard requirements)'; exit 1; fi",
+            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add --all|git add \\.$|git add \\. '; then echo 'BLOCKED: Stage explicit filenames instead of git add -A / git add . (see CLAUDE.md hard requirements)'; exit 1; fi",
             "timeout": 10
           }
         ]

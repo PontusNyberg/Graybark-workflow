@@ -84,9 +84,12 @@ skill unseen.
 
 1. **Scan with SkillSpector** before installation — point at the repo/zip/directory/file:
    ```bash
-   # Docker (no local Python required):
+   # Docker (no local Python required). The image is NOT on a registry —
+   # build it locally from the SkillSpector repo first (one-time):
+   git clone https://github.com/NVIDIA/skillspector && cd skillspector
+   docker build -t skillspector .   # see the repo README/Makefile for the current build entrypoint
+   # Then scan:
    docker run --rm -v "$PWD:/scan" skillspector scan <repo-url|path>
-   # or via a cloned container, see github.com/NVIDIA/skillspector
    ```
    For CI: run against `.ai/skills/` + `.claude/` and consume the SARIF output.
 

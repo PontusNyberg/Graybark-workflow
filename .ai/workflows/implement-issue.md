@@ -276,6 +276,7 @@ this gate as a self-driving loop.
 BASE=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's@^origin/@@')
 [ -n "$BASE" ] || BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null)
 [ -n "$BASE" ] || BASE=$(git branch -l main master --format='%(refname:short)' | head -1)
+[ -n "$BASE" ] || { echo "ERROR: could not determine the default branch — set BASE manually"; exit 1; }
 git diff "$BASE"...HEAD > /tmp/diff-full.txt
 DIFF_LINES=$(wc -l < /tmp/diff-full.txt)
 

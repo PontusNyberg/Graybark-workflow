@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && bash .claude/hooks/safety-check.sh \"$CMD\" \"Bash\"",
+            "command": "command -v jq >/dev/null 2>&1 || { echo 'This Graybark hook requires jq — install jq or remove the hook from .claude/settings.json'; exit 1; }; CMD=$(cat | jq -r '.tool_input.command // empty') && bash .claude/hooks/safety-check.sh \"$CMD\" \"Bash\"",
             "statusMessage": "Checking command safety...",
             "timeout": 10
           }
@@ -29,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=$(cat | jq -r '.tool_input.file_path // empty') && case \"$FILE\" in *.md|*settings.json|*settings.local.json|*.ai/logs/*) exit 0 ;; esac && if [ ! -f .ai/logs/planned-files.txt ]; then echo 'BLOCKED: .ai/logs/planned-files.txt missing. Run the pre-flight workflow (.ai/workflows/implement-issue.md steps 1-4) before writing code.'; exit 1; fi",
+            "command": "command -v jq >/dev/null 2>&1 || { echo 'This Graybark hook requires jq — install jq or remove the hook from .claude/settings.json'; exit 1; }; FILE=$(cat | jq -r '.tool_input.file_path // empty') && case \"$FILE\" in *.md|*settings.json|*settings.local.json|*.ai/logs/*) exit 0 ;; esac && if [ ! -f .ai/logs/planned-files.txt ]; then echo 'BLOCKED: .ai/logs/planned-files.txt missing. Run the pre-flight workflow (.ai/workflows/implement-issue.md steps 1-4) before writing code.'; exit 1; fi",
             "timeout": 10
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add --all|git add \\.$|git add \\. |git add \\./$|git add \\./ '; then echo 'BLOCKED: Stage explicit filenames instead of git add -A / git add . (see CLAUDE.md hard requirements)'; exit 1; fi",
+            "command": "command -v jq >/dev/null 2>&1 || { echo 'This Graybark hook requires jq — install jq or remove the hook from .claude/settings.json'; exit 1; }; CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add --all|git add \\.$|git add \\. |git add \\./$|git add \\./ '; then echo 'BLOCKED: Stage explicit filenames instead of git add -A / git add . (see CLAUDE.md hard requirements)'; exit 1; fi",
             "timeout": 10
           }
         ]
@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -q 'git commit'; then if ! [ -f .ai/scripts/verify.sh ]; then exit 0; fi; if ! [ -f .ai/logs/test-results.json ]; then echo 'Reminder: run bash .ai/scripts/verify.sh before committing.'; fi; fi",
+            "command": "command -v jq >/dev/null 2>&1 || { echo 'This Graybark hook requires jq — install jq or remove the hook from .claude/settings.json'; exit 1; }; CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -q 'git commit'; then if ! [ -f .ai/scripts/verify.sh ]; then exit 0; fi; if ! [ -f .ai/logs/test-results.json ]; then echo 'Reminder: run bash .ai/scripts/verify.sh before committing.'; fi; fi",
             "timeout": 10
           }
         ]

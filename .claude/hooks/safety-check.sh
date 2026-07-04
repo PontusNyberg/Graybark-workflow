@@ -90,7 +90,7 @@ if echo "$COMMAND" | grep -iE "git\s+branch\s+-D\s+(main|master)([[:space:]]|$)"
 fi
 
 # Warn on git clean -fdx (deletes ALL untracked files)
-if echo "$COMMAND" | grep -E "git\s+clean\s+.*-[a-z]*f.*-[a-z]*d.*-[a-z]*x" >/dev/null; then
+if echo "$COMMAND" | grep -E "git\s+clean(\s+-[a-zA-Z]+)*\s+-[a-zA-Z]*x|git\s+clean\s+-[a-zA-Z]*x" >/dev/null; then
     warn_command "git clean -fdx deletes ALL untracked files including .env and node_modules."
 fi
 
@@ -144,7 +144,7 @@ if echo "$COMMAND" | grep -E "rm\s+.*-[a-z]*r[a-z]*f" >/dev/null; then
 fi
 
 # Block deletion of .env files
-if echo "$COMMAND" | grep -E "rm.*\.env" >/dev/null; then
+if echo "$COMMAND" | grep -E "rm.*\.env" >/dev/null && ! echo "$COMMAND" | grep -E "\.example" >/dev/null; then
     block_command "Deleting .env files is forbidden. They contain critical secrets."
 fi
 
@@ -182,15 +182,20 @@ fi
 # List of production identifiers that require extra caution.
 # TODO: Replace/extend with your project's DB instance names, prod hostnames, IPs.
 # Regex patterns with word boundaries — plain "prod" would also match e.g. "products"
-PROD_IDENTIFIERS=(
+PROD_PATTERNS=(
     "TODO-your-prod-db"
     "(^|[^a-zA-Z0-9_])prod([^a-zA-Z0-9_]|$)"
     "(^|[^a-zA-Z0-9_])production([^a-zA-Z0-9_]|$)"
 )
+PROD_LABELS=(
+    "TODO-your-prod-db"
+    "prod"
+    "production"
+)
 
 # Check whether the command touches a production identifier
-for identifier in "${PROD_IDENTIFIERS[@]}"; do
-    if echo "$COMMAND" | grep -iE "$identifier" >/dev/null; then
+for i in "${!PROD_PATTERNS[@]}"; do
+    if echo "$COMMAND" | grep -iE "${PROD_PATTERNS[$i]}" >/dev/null; then
         # Read operations (SELECT, GET, DESCRIBE, etc.) are OK
         if echo "$COMMAND" | grep -iE "(SELECT|GET|DESCRIBE|LIST|SHOW|VIEW|READ|LOGS|STATUS)" >/dev/null; then
             # Read operations are OK
@@ -198,7 +203,7 @@ for identifier in "${PROD_IDENTIFIERS[@]}"; do
         else
             # Destructive operations get an extra warning
             if echo "$COMMAND" | grep -iE "(DELETE|DROP|TRUNCATE|REMOVE|KILL|STOP|RESTART|RESET)" >/dev/null; then
-                warn_command "Destructive operation on a production identifier detected: $identifier"
+                warn_command "Destructive operation on a production identifier detected: ${PROD_LABELS[$i]}"
             fi
         fi
     fi

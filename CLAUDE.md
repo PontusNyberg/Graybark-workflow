@@ -42,9 +42,12 @@ If you think any of the following — STOP. You're rationalizing away the workfl
 ## AI Agent System
 
 For **issue implementation**: Follow `.ai/workflows/implement-issue.md` step by step.
-For **sprint planning**: Follow `.ai/workflows/sprint-planning.md` (or run `bash .ai/scripts/sprint-planning.sh`).
-For **retrospectives**: Run `bash .ai/scripts/retrospective.sh`.
+For **sprint planning**: Follow `.ai/workflows/sprint-planning.md`.
+For **retrospectives**: Follow `.ai/workflows/retrospective.md`.
+For **shipping + external AI review**: Run `/ship-and-watch` (`.claude/commands/ship-and-watch.md`) — pushes the branch, opens/reuses the PR, and loops on Copilot review comments until silent.
 Full system documentation: `.ai/CLAUDE.md`.
+
+**Keeping in sync with the shared template:** `core-manifest.yml` lists which files are shared workflow core; `.ai/skills/workflow-sync.md` syncs them both ways (project ↔ template).
 
 ## Iteration logs (MANDATORY per issue)
 
@@ -90,9 +93,13 @@ New skills require PR review. See `.ai/workflows/skill-lifecycle.md`.
 
 | Skill | Trigger |
 |-------|---------|
-| `compound-learning` | After Step 10 — document solution in `docs/solutions/` |
+| `compound-learning` | Step 11 — document solution in `docs/solutions/` |
 | `ideate` | Manual — proactive improvement identification |
 | `parallel-dispatch` | 2+ independent work packages |
+| `backlog-reconcile` | Sprint start, or when backlog/plans have drifted from the code |
+| `incident-fix-scoping` | Issue labeled `incident`/`postmortem` or branch `hotfix/*` (Step 4a) |
+| `compress-logs` | Sprint close — final step of the retrospective |
+| `workflow-sync` | Sprint start, or when a core-manifest file changed |
 
 ## Specialist routing
 
@@ -103,6 +110,8 @@ New skills require PR review. See `.ai/workflows/skill-lifecycle.md`.
 | Architecture, CI/CD | TODO: Name | `.claude/agents/tech-lead.md` |
 | Scope, prioritization (advisor) | TODO: Name | `.claude/agents/product-skeptic.md` |
 | UX (advisor) | TODO: Name | `.claude/agents/product-designer.md` |
+
+**Reviewers (4 generic, always run in parallel):** correctness, security, conventions, lifecycle — `.ai/agents/reviewer-*.md`. Plus an optional specialist cross-reviewer.
 
 ## Parallel dispatch (worktrees)
 
@@ -125,7 +134,7 @@ See `.ai/skills/parallel-dispatch.md` and `.ai/workflows/implement-issue.md` Ste
 
 1. **Feature branch + PR** — NEVER commit directly on main/master, work on branch and create PR
 2. **Tests mandatory** — verify.sh blocks without tests. Adjust test placement rules per your framework.
-3. **Max 4 iterations** — then `needs-human`
+3. **Max 4 iterations** — then graded escalation: `needs-human-p2` (quick-fix hypothesis), `needs-human-p1` (unclear how to proceed), or `needs-human-p0` (requires architecture/product decision). See the rubric in `.ai/workflows/implement-issue.md` → "Escalation states".
 4. **Never commit** `.env`, credentials, `node_modules/`, `vendor/`
 5. **Explicit file staging** — never `git add -A`
 6. **Worktree isolation for specialists** — always dispatch coding agents with `isolation: "worktree"`

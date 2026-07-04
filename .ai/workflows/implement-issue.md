@@ -2,6 +2,10 @@
 
 Main loop for implementing a GitHub issue. Claude Code (main session) coordinates everything — specialist agents code and test, reviewer agents review.
 
+> Specialist names are generic here ("Backend Specialist", "Frontend Specialist").
+> Each project names its own agents in `.claude/agents/` — substitute your project's
+> agent names when dispatching.
+
 ## Prerequisites
 
 - Issue with clear acceptance criteria
@@ -44,7 +48,7 @@ If unclear → `needs-clarification`, **STOP**.
 
 ### Step 3: Consult advisors (if relevant)
 
-Spawn UX or business advisors via Agent tool if the issue touches their domain:
+Spawn UX or scope advisors via Agent tool if the issue touches their domain:
 
 ```
 Agent(
@@ -68,6 +72,18 @@ Advisors do **not** need worktrees — they don't change files.
 
 Break down the issue and assign specialist(s).
 
+**Step 4a (conditional): Incident-fix scoping.** If the issue is tagged
+`incident`/`postmortem`, references a production outage, or the branch
+name matches `fix/<incident-name>` / `hotfix/*`, load
+`.ai/skills/incident-fix-scoping.md` BEFORE further planning. The rule
+forces you to split incident work into:
+1. PR 1 — stop the bleeding (minimal, urgent)
+2. PR 2 — visibility / adjacent hardening / postmortem
+3. PR 3 — process improvements (reviewer prompts, skills, tooling)
+
+In a sister project, one incident PR swallowed all three phases and took
+9 AI-review rounds over 3 days to converge. Don't repeat that.
+
 **Save planned files** for scope validation in verify.sh:
 
 ```bash
@@ -85,15 +101,15 @@ Plan format:
 ## Plan: Issue #<NR>
 
 ### Work package 1: Backend
-- Specialist: Backend (.claude/agents/backend-developer.md)
-- Files: api/...
+- Specialist: Backend Specialist
+- Files: TODO: your backend paths (e.g. api/src/...)
 - AC: AC-1, AC-3
 - Rules: always.md + on-backend.md
 - Tests: API test, integration test
 
 ### Work package 2: Frontend
-- Specialist: Frontend (.claude/agents/frontend-developer.md)
-- Files: src/pages/...
+- Specialist: Frontend Specialist
+- Files: TODO: your frontend paths (e.g. src/...)
 - AC: AC-2, AC-4
 - Rules: always.md + on-frontend.md
 - Tests: Component test, loading/error state test
@@ -134,12 +150,11 @@ Dispatch all specialists in **the same message** — Claude Code runs them simul
 ```
 Agent(
   description: "Backend: issue #<NR>",
+  subagent_type: "<your backend agent from .claude/agents/>",
   isolation: "worktree",
   prompt: """
-    <contents from .claude/agents/backend-developer.md>
-
     <contents from .ai/rules/always.md>
-    <contents from relevant domain rule>
+    <contents from .ai/rules/on-backend.md>
     <contents from matching skill, if any>
 
     ISSUE:
@@ -158,10 +173,9 @@ Agent(
 
 Agent(
   description: "Frontend: issue #<NR>",
+  subagent_type: "<your frontend agent from .claude/agents/>",
   isolation: "worktree",
   prompt: """
-    <contents from .claude/agents/frontend-developer.md>
-
     <contents from .ai/rules/always.md>
     <contents from .ai/rules/on-frontend.md>
     <contents from matching skill, if any>
@@ -187,11 +201,11 @@ If frontend depends on backend (e.g., new API schema):
 
 ```
 # Step 1: Backend first
-Agent(isolation: "worktree", prompt: "Backend: create API...")
+Agent(subagent_type: "<backend agent>", isolation: "worktree", prompt: "Backend: create API...")
 # → merge worktree branch to feature branch
 
 # Step 2: Frontend with backend in place
-Agent(isolation: "worktree", prompt: "Frontend: build UI against API...")
+Agent(subagent_type: "<frontend agent>", isolation: "worktree", prompt: "Frontend: build UI against API...")
 ```
 
 ### Step 5b: Merge worktree branches
@@ -225,11 +239,13 @@ git add <changed files>
 bash .ai/scripts/verify.sh
 ```
 
-verify.sh checks:
-- Linting / type checking
-- Test requirements — blocks if tests are missing for new code
-- Test execution — runs all tests
-- Secrets, scope, code quality checks
+verify.sh checks (customize for your stack):
+- Type checking
+- Linting
+- Test execution
+- Secrets detection
+- Scope check against planned-files.txt
+- Test requirements gate
 
 **If verify fails:**
 - Send error messages back to the right specialist
@@ -239,13 +255,24 @@ verify.sh checks:
 
 ### Step 8: Parallel review
 
-Spawn reviewers in parallel via Agent tool. Always 3 generic + optional specialist reviewer.
+Spawn reviewers in parallel via Agent tool. Always **4 generic** (correctness,
+security, conventions, lifecycle) + optional specialist reviewer.
 
 Reviewers do **not** need worktrees — they don't change files, only analyze diff.
 
+**Optional AI code review gate (e.g. GitHub Copilot) — before internal reviewers.**
+If your repo has an external AI reviewer attached, push the branch, open the PR,
+and let it comment first. Empirically (sister project), an external AI reviewer
+caught lifecycle and cross-module bugs that all three conventional internal
+reviewers missed (5 CRITICAL bugs in one PR's case). If the external reviewer has
+open comments, address them BEFORE invoking internal reviewers — running internal
+reviewers on a diff already flagged wastes their context and confuses the verdict.
+The `/ship-and-watch` command (`.claude/commands/ship-and-watch.md`) automates
+this gate as a self-driving loop.
+
 ```
 # Prepare diff (run in Bash)
-git diff main...HEAD > /tmp/diff-full.txt
+git diff master...HEAD > /tmp/diff-full.txt
 DIFF_LINES=$(wc -l < /tmp/diff-full.txt)
 
 # Dispatch all reviewers in parallel in the same message:
@@ -277,6 +304,15 @@ Agent(
   """
 )
 
+Agent(
+  description: "Review: lifecycle",
+  prompt: """
+    <contents from .ai/agents/reviewer-lifecycle.md>
+    ISSUE: <contents from .ai/logs/current-issue.json>
+    DIFF: <contents from /tmp/diff-full.txt>
+  """
+)
+
 # Specialist reviewer (cross-review: not the same specialist that coded)
 Agent(
   description: "Review: specialist cross-review",
@@ -291,6 +327,11 @@ Agent(
 ```
 
 **Large diff (>3000 lines):** Filter diff per reviewer domain.
+
+**Safeguard-injection:** If the diff introduces or extends a safeguard
+primitive (circuit breaker, mutex, rate limiter, retry logic, classifier,
+state machine), inject any safeguard-review checklist your project keeps
+in `.ai/skills/` into the **correctness** and **lifecycle** reviewer prompts.
 
 ### Step 8b: Validate review output
 
@@ -335,7 +376,7 @@ Changes:
 - <one line per logical change>
 
 Implemented by: <specialist(s)>
-Reviewed by: correctness, security, conventions, <specialist>"
+Reviewed by: correctness, security, conventions, lifecycle, <specialist>"
 
 # Push branch and create PR
 git push -u origin HEAD
@@ -345,24 +386,69 @@ gh pr create --title "<short description>" --body "$(cat <<'PRBODY'
 
 ## Test plan
 - [ ] Unit tests pass
-- [ ] TypeScript typecheck passes
+- [ ] Type check passes
+- [ ] Lint passes
 
 Generated with [Claude Code](https://claude.com/claude-code)
 PRBODY
 )"
 ```
 
-### Step 11: Compound Learning
+### Step 10.5: Handoff prompt (if the session ends before the issue is done)
 
-**Skip if:** Trivial change (<20 lines), 1 iteration without problems, plain text change.
+If you must end the session mid-work (compaction, tokens, user leaving), write a
+**handoff prompt** the user can paste directly into the next session. This saves tokens
+massively — the next session doesn't need to re-read the whole conversation.
 
-Follow `.ai/skills/compound-learning.md`:
+Format:
 
-1. **Analyze** the iteration log — what went wrong, what took detours?
+```
+## Continue work on #<NR>: <title>
+
+**Status:** <short — iteration X/4, package A done, package B in progress, etc.>
+**Branch:** <branch name>
+**Latest commit:** <sha> — <message>
+**Next step:** <what to do next, concrete>
+**Blockers:** <if any, with link to relevant log or file>
+**Files touched:** <list>
+**Context:** <2-3 sentences about why-decisions that aren't visible in the diff>
+```
+
+Write the prompt to the user at the end of the session. Don't repeat the whole plan —
+point to `.ai/logs/<nr>.md` for details. Applies to both the main session and a
+subagent session handing off to an orchestrator.
+
+### Step 11: Compound Learning (BLOCKING — the issue is not done until this is resolved)
+
+The iteration log (`.ai/logs/<nr>.md`) is **gitignored and ephemeral** — iteration logs
+may contain sensitive data (PII, decrypted values) so they can never be committed. A
+lesson that stays only in the log is **lost**. Step 11 is how it survives. This is part
+of "done", not optional cleanup.
+
+**This step has a mandatory decision — you MUST do exactly one of:**
+
+A. **Write a solution doc** (required when the issue was non-trivial — ANY of: 2+ iterations,
+   a non-obvious bug, the approach changed, a workaround, a review/CI-caught defect, a
+   reusable pattern). Then link it in the PR body: `Solution-doc: docs/solutions/<file>.md`.
+
+B. **Explicitly waive it** (only for genuinely trivial issues — text/config/rename,
+   <20 lines, 1 clean iteration). Record `Solution-doc: N/A — <one-line reason>` in the PR body.
+
+Silently skipping = workflow violation. verify.sh can emit a non-blocking reminder when a
+non-trivial code diff carries no `docs/solutions/` change and no `Solution-doc:` marker.
+Note: such a check detects the marker in the **diff or recent commit messages only** — it
+cannot read the PR body. So to silence the reminder, put `Solution-doc: …` in a commit
+message (the PR-body field is the human-facing record, not what the check sees).
+
+**To write the doc — follow `.ai/skills/compound-learning.md`:**
+
+1. **Analyze** the iteration log — what went wrong, what took detours, root cause?
 2. **Categorize** the insight (bug-pattern, architecture, workflow, domain, testing)
-3. **Write solution file** in `docs/solutions/<category>-<short-description>.md`
+3. **Write solution file** in `docs/solutions/<category-or-YYYY-MM-DD>-<short-description>.md`.
+   **PII-free** — distil the lesson; never paste sensitive/decrypted values or raw data rows
+   from the log.
 4. **Connect back** — if mechanically checkable → verify.sh, if pattern → skill, if rule → rules/
-5. **Commit** the solution file (it's durable, not ephemeral)
+5. **Commit** the solution file on the feature branch so it ships in THIS PR (durable, not ephemeral).
 
 ```bash
 git add docs/solutions/<new-file>.md
@@ -409,26 +495,61 @@ if iteration >= 4:
 - Invalid reviewer output → NOT +1 (re-run)
 - Reviewer timeout → NOT +1 (re-run)
 
-## Escalation states
+## Escalation states (graded)
 
 | State | Meaning |
 |-------|---------|
-| `needs-human` | Max iterations reached |
-| `needs-clarification` | Issue unclear |
+| `needs-human-p2` | Max iterations reached. You have a concrete hypothesis about what's needed. Likely quick-fix. |
+| `needs-human-p1` | Max iterations reached. You don't know how to proceed. 3+ fix attempts failed for different reasons. |
+| `needs-human-p0` | The issue requires an architecture or product decision. Implementation is pointless until it's made. |
+| `needs-clarification` | Issue unclear — acceptance criteria vague or contradictory. |
 
-**On `needs-human`:**
+### Choosing the level — rubric
+
+**Pick P2 if:**
+- Iteration 3 or 4 failed for the same concrete reason (e.g. "test X fails with Y")
+- You have a concrete hypothesis why
+- The fix is mechanical (swap library, change assertion, adjust env var)
+
+**Pick P1 if:**
+- 3+ different fix attempts failed for different reasons
+- You understand what should happen but not why it doesn't
+- The test suite or verify.sh behaves inconsistently
+- Reviewers give contradictory signals
+
+**Pick P0 if:**
+- The issue requires an architecture decision (data model, pattern choice)
+- Acceptance criteria are vague or contradictory
+- Implementation affects other open issues that must stay in sync
+- A security or product decision needs sign-off
+
+**You MUST pick a level** when escalating. A plain ungraded "needs-human" is not allowed.
+If torn between P1 and P2 — pick P1 (the more cautious one).
+
+### Escalation format
+
 ```markdown
-## Needs Human Review
+## Needs Human Review (P<level>)
 
 Issue: #<NR>
 Iterations: 4/4
+Severity: P<0|1|2> — <one-line motivation per the rubric>
+
 Remaining problems:
 - <unresolved blockers/verify errors>
 
 What was tried:
 - Iteration 1: <specialist, result>
 - Iteration 2: <change, result>
+- Iteration 3: <...>
+- Iteration 4: <...>
+
+Next step (your recommendation):
+- <what you think is needed>
 ```
+
+Label the GitHub issue accordingly: `needs-human-p0`, `needs-human-p1` or `needs-human-p2`
+(create the labels once if missing: red for P0, orange for P1, yellow for P2).
 
 ## Log format
 
@@ -439,21 +560,22 @@ In `.ai/logs/<issue-nr>.md`:
 
 Started: <timestamp>
 Rules: always, on-frontend
-Specialists: Frontend, Backend
+Specialists: Frontend Specialist, Backend Specialist
 
 ### Iteration 1
-- Specialist(s): Frontend, Backend
+- Specialist(s): Frontend Specialist, Backend Specialist
 - Changed files: [list]
 - Verify: PASS/FAIL
 - Tests: X passed, Y failed
-- Review: [correctness: pass, security: fail, conventions: pass, specialist: pass]
+- Review: [correctness: pass, security: fail, conventions: pass, lifecycle: pass, specialist: pass]
 - Blockers: [list]
 - Action: [fix, new iteration]
 
 ## Final result
-- Status: completed / needs-human / needs-clarification
+- Status: completed / needs-human-p0|p1|p2 / needs-clarification
 - Iterations: X/4
 - Commit: <hash>
 ```
 
-Log files are NOT committed — they live in `.gitignore`.
+Log files are NOT committed — they live in `.gitignore` (iteration logs may contain
+sensitive data such as PII or decrypted values).

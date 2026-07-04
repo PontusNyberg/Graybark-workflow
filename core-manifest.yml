@@ -1,0 +1,48 @@
+# Graybark core manifest — the single source of truth for which files are
+# shared workflow core vs project-owned.
+#
+# Consumed by .ai/skills/workflow-sync.md in downstream projects.
+# Comparison is SEMANTIC, not byte-level: a project may keep core files in
+# another language (e.g. Swedish) — translation alone is not drift. Drift =
+# differences in mechanics, steps, gates, rules or formats.
+
+version: 2.0.0
+
+# Synced files — same mechanics everywhere. Improvements flow both ways:
+# project -> Graybark (backport PR + version bump) and Graybark -> project.
+core:
+  - .ai/workflows/implement-issue.md
+  - .ai/workflows/sprint-planning.md
+  - .ai/workflows/retrospective.md
+  - .ai/workflows/skill-lifecycle.md
+  - .ai/rules/always.md
+  - .ai/agents/reviewer-correctness.md
+  - .ai/agents/reviewer-security.md
+  - .ai/agents/reviewer-conventions.md
+  - .ai/agents/reviewer-lifecycle.md
+  - .ai/skills/compound-learning.md
+  - .ai/skills/parallel-dispatch.md
+  - .ai/skills/ideate.md
+  - .ai/skills/backlog-reconcile.md
+  - .ai/skills/incident-fix-scoping.md
+  - .ai/skills/compress-logs.md
+  - .ai/skills/workflow-sync.md
+  - .ai/scripts/evaluate-reviews.sh
+  - .claude/commands/ship-and-watch.md
+
+# Adapted files — the STRUCTURE and check-categories are core; the content is
+# expected to be project-specific. Compare section-by-section, flag missing
+# categories, never flag project values (commands, prod identifiers, paths).
+adapted:
+  - .ai/scripts/verify.sh          # check sections core; typecheck/lint/test commands project
+  - .claude/hooks/safety-check.sh  # rule categories core; prod identifiers project
+  - .claude/settings.json          # hook set core; exact wording/paths project
+  - .ai/skills/triggers.yml        # orchestrator entries core; specialist skills project
+
+# Never synced — pure project domain. Templates here are examples only.
+local:
+  - CLAUDE.md
+  - .ai/CLAUDE.md
+  - .ai/rules/on-*.md
+  - .ai/skills/* (specialist skills)
+  - .claude/agents/*

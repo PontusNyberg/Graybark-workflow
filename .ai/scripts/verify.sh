@@ -273,8 +273,8 @@ fi
 section "Review Gate"
 
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
-if [[ "$CURRENT_BRANCH" == sprint-* ]]; then
-  REVIEW_FILES=(/tmp/review-correctness.json /tmp/review-security.json /tmp/review-conventions.json)
+if [[ "$CURRENT_BRANCH" == sprint* || "$CURRENT_BRANCH" == feat/* || "$CURRENT_BRANCH" == fix/* || "$CURRENT_BRANCH" == hotfix/* ]]; then
+  REVIEW_FILES=(/tmp/review-correctness.json /tmp/review-security.json /tmp/review-conventions.json /tmp/review-lifecycle.json)
   MISSING_REVIEWS=()
   FAILED_REVIEWS=()
 
@@ -300,7 +300,7 @@ if [[ "$CURRENT_BRANCH" == sprint-* ]]; then
     pass "All reviews completed and approved"
   fi
 else
-  pass "Review gate — not a sprint branch, skipping"
+  pass "Review gate — not a sprint/feat/fix/hotfix branch, skipping"
 fi
 
 # ─── Test results JSON ──────────────────────────────────────────

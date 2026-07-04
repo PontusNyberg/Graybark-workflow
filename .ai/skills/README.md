@@ -18,14 +18,38 @@ Skills are reusable agent routines that codify recurring patterns. They are inje
 ## Skill types
 
 - **Specialist skills** — injected into specialist prompts (frontend, backend)
-- **Orchestrator skills** — run by the main session (compound-learning, ideate, parallel-dispatch)
+- **Orchestrator skills** — run by the main session (compound-learning, ideate, parallel-dispatch, ...)
+
+## Injection pattern
+
+Matching skills are injected into the specialist prompt via the Agent tool, after rules but before the work package:
+
+```
+Agent(
+  isolation: "worktree",
+  prompt: """
+    <.claude/agents/<specialist>.md>
+    <.ai/rules/always.md>
+    <.ai/rules/<context>.md>
+    <.ai/skills/<matching-skill>.md>   ← skill injected here if it matches
+
+    ISSUE: <contents from .ai/logs/current-issue.json>
+    WORK PACKAGE: ...
+    TEST REQUIREMENTS: ...
+  """
+)
+```
 
 ## Active skills
 
 | Skill | Type | Purpose |
 |-------|------|---------|
-| `compound-learning.md` | Orchestrator | Document learnings after implementation |
+| `compound-learning.md` | Orchestrator | Document learnings after implementation (Step 11) |
 | `parallel-dispatch.md` | Orchestrator | Dependency analysis for parallel work |
 | `ideate.md` | Orchestrator | Proactive improvement identification |
+| `backlog-reconcile.md` | Orchestrator | Sync backlog/plans against actual code (sprint start) |
+| `incident-fix-scoping.md` | Orchestrator | Split incident fixes into at most 3 focused PRs (Step 4a) |
+| `compress-logs.md` | Orchestrator | Extract lessons from iteration logs at sprint close, archive raw logs |
+| `workflow-sync.md` | Orchestrator | Keep the workflow core in sync with the shared template (upstream) |
 
 TODO: Add project-specific specialist skills as patterns emerge.

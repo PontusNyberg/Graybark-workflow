@@ -51,13 +51,16 @@ If verify or review fails → the orchestrator sends feedback to the specialist 
 
 | Layer | What | Purpose |
 |-------|------|---------|
-| **Workflow** | `implement-issue.md` | 11-step issue→PR pipeline |
+| **Workflows** | `implement-issue.md`, `sprint-planning.md`, `retrospective.md`, `skill-lifecycle.md` | Issue→PR pipeline, sprint planning, retros, skill governance |
 | **Specialists** | frontend, backend, architect agents | Code + test in worktree isolation |
 | **Advisors** | UX designer, scope guardian | Advise without coding |
-| **Reviewers** | correctness, security, conventions | Parallel diff review with JSON verdicts |
+| **Reviewers** | correctness, security, conventions, lifecycle | Parallel diff review with JSON verdicts |
 | **Quality gate** | `verify.sh` | Blocks on lint, type, test, secret, scope failures |
-| **Skills** | compound-learning, parallel-dispatch, ideate | Reusable agent routines |
+| **Safety hook** | `.claude/hooks/safety-check.sh` | PreToolUse hook blocking dangerous commands (DROP TABLE, force push, rm -rf, secret staging) — with its own test suite |
+| **Commands** | `/ship-and-watch` | Self-driving push→PR→Copilot-review loop until the external reviewer is silent |
+| **Skills** | compound-learning, parallel-dispatch, ideate, backlog-reconcile, incident-fix-scoping, compress-logs, workflow-sync | Reusable agent routines |
 | **Rules** | always, on-frontend, on-backend, on-migration, on-testing | Injected into agent prompts based on affected files |
+| **Sync** | `core-manifest.yml` + `VERSION` + workflow-sync skill | Keep downstream projects and this template in sync |
 
 ## Quick start
 
@@ -103,7 +106,10 @@ That's it. The workflow handles the rest.
 .ai/
 ├── CLAUDE.md                    # Agent system overview
 ├── workflows/
-│   └── implement-issue.md       # The 11-step workflow
+│   ├── implement-issue.md       # The 11-step workflow
+│   ├── sprint-planning.md       # Sprint planning with scope advisor + velocity
+│   ├── retrospective.md         # Sprint retros → rule/skill improvements
+│   └── skill-lifecycle.md       # How skills are proposed, reviewed, activated
 ├── rules/
 │   ├── always.md                # Universal rules (scope, types, git, quality)
 │   ├── on-frontend.md           # Frontend conventions
@@ -113,7 +119,8 @@ That's it. The workflow handles the rest.
 ├── agents/
 │   ├── reviewer-correctness.md  # "Does it fulfill the acceptance criteria?"
 │   ├── reviewer-security.md     # "Is it secure?"
-│   └── reviewer-conventions.md  # "Does it follow our patterns?"
+│   ├── reviewer-conventions.md  # "Does it follow our patterns?"
+│   └── reviewer-lifecycle.md    # "What happens across calls and module boundaries?"
 ├── scripts/
 │   ├── verify.sh                # Quality gate (customize this!)
 │   └── evaluate-reviews.sh      # Parses reviewer JSON verdicts
@@ -121,6 +128,10 @@ That's it. The workflow handles the rest.
 │   ├── compound-learning.md     # Post-implementation learning capture
 │   ├── parallel-dispatch.md     # Dependency analysis for parallel agents
 │   ├── ideate.md                # Proactive improvement identification
+│   ├── backlog-reconcile.md     # Sync backlog/plans against actual code
+│   ├── incident-fix-scoping.md  # Split incident fixes into ≤3 focused PRs
+│   ├── compress-logs.md         # Sprint-close log compression + archiving
+│   ├── workflow-sync.md         # Two-way sync with this template
 │   └── triggers.yml             # When to inject which skill
 └── logs/                        # Session-local (gitignored)
 
@@ -132,13 +143,20 @@ That's it. The workflow handles the rest.
 │   ├── product-designer.md      # UX advice (no code)
 │   ├── product-skeptic.md       # Scope control (no code)
 │   └── TEAM.md                  # Who does what
-└── settings.json
+├── commands/
+│   └── ship-and-watch.md        # /ship-and-watch — automated Copilot review loop
+├── hooks/
+│   ├── safety-check.sh          # PreToolUse hook: blocks dangerous commands
+│   └── test-safety-hook.sh      # Test suite for the safety hook
+└── settings.json                # Workflow gate + safety hooks wiring
 
 CLAUDE.md                        # Entry point — Claude reads this first
+core-manifest.yml                # Which files are shared workflow core
+VERSION                          # Template version (for workflow-sync)
 docs/
 ├── solutions/                   # Compound learning artifacts
 ├── brainstorms/                 # Ideation output
-├── plans/                       # Technical plans
+├── plans/                       # Technical plans (TEMPLATE.md included)
 └── retros/                      # Sprint retrospectives
 ```
 
@@ -154,10 +172,11 @@ Each specialist agent gets a full git worktree — an isolated copy of the repo.
 
 ### Why separate reviewers?
 
-Three reviewers with different lenses catch more than one reviewer trying to check everything:
+Four reviewers with different lenses catch more than one reviewer trying to check everything:
 - **Correctness** — Does it actually fulfill the acceptance criteria?
 - **Security** — SQL injection? Auth bypass? Data leak?
 - **Conventions** — Does it match existing patterns?
+- **Lifecycle** — What happens across multiple calls, state transitions, and module boundaries? (Added after 5 critical lifecycle bugs passed the other three reviewers in a production project.)
 
 They run in parallel (fast) and output structured JSON (parseable).
 
@@ -182,7 +201,7 @@ Every multi-iteration issue teaches something. The `compound-learning` skill cap
 | 5b. Merge | Merge worktree branches to feature branch | Orchestrator |
 | 6. Verify completeness | All ACs covered? All planned files changed? | Orchestrator |
 | 7. Verify quality | Run verify.sh (lint, types, tests, secrets) | verify.sh |
-| 8. Review | Parallel review (3 generic + cross-review) | Reviewers |
+| 8. Review | Parallel review (4 generic + cross-review) | Reviewers |
 | 9. Evaluate | Parse JSON verdicts, check for blockers | evaluate-reviews.sh |
 | 10. Commit | Stage, commit, push, create PR | Orchestrator |
 | 11. Learn | Document insights in docs/solutions/ | Orchestrator |
@@ -205,6 +224,15 @@ After copying into your project:
 - [ ] `.ai/scripts/verify.sh` — **Critical:** add your linter, type checker, and test commands
 - [ ] `.ai/skills/triggers.yml` — Add skills for your recurring patterns
 - [ ] `.gitignore` — Your build output, dependencies, etc.
+
+## Keeping projects in sync
+
+Projects that adopt this template drift from it over time — and improve on it. Two files make the sync bidirectional:
+
+- **`core-manifest.yml`** — declares which files are shared workflow core (synced semantically, both ways), which are adapted (structure core, content project-specific), and which are purely local.
+- **`.ai/skills/workflow-sync.md`** — the orchestrator skill a downstream project runs at sprint start (or event-driven after improving a core file). It compares core files semantically, applies template improvements downstream, and backports project improvements upstream as a PR against this repo with a `VERSION` bump.
+
+Translation and renamed specialists are not drift — mechanics, gates, thresholds, and formats are.
 
 ## Requirements
 

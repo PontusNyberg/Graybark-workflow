@@ -55,3 +55,50 @@ ideate:
     - "tech debt"
     - "what should we improve"
   # Trigger: Manual — during sprint planning or on request
+
+backlog-reconcile:
+  file: .ai/skills/backlog-reconcile.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "reconcile"
+    - "backlog"
+    - "stale plans"
+    - "plans drifted"
+    - "sprint start"
+  # Trigger: Sprint start, or when backlog/plans have drifted from the code
+
+incident-fix-scoping:
+  file: .ai/skills/incident-fix-scoping.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "incident"
+    - "postmortem"
+    - "outage"
+    - "hotfix"
+    - "production down"
+  # Trigger: Issue labeled incident/postmortem, or branch fix/<incident>/hotfix/* (Step 4a)
+
+compress-logs:
+  file: .ai/skills/compress-logs.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "compress logs"
+    - "archive logs"
+    - "sprint close"
+    - "iteration logs"
+  # Trigger: Sprint close — final step of retrospective.md
+
+workflow-sync:
+  file: .ai/skills/workflow-sync.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "workflow sync"
+    - "sync the workflow"
+    - "upstream"
+    - "template drift"
+    - "backport"
+  # Trigger: Sprint start, or when compound-learning/retro changed a core-manifest file

@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add --all|git add \\.$|git add \\. '; then echo 'BLOCKED: Stage explicit filenames instead of git add -A / git add . (see CLAUDE.md hard requirements)'; exit 1; fi",
+            "command": "CMD=$(cat | jq -r '.tool_input.command // empty') && if echo \"$CMD\" | grep -qE 'git add -A|git add --all|git add \\.$|git add \\. |git add \\./$|git add \\./ '; then echo 'BLOCKED: Stage explicit filenames instead of git add -A / git add . (see CLAUDE.md hard requirements)'; exit 1; fi",
             "timeout": 10
           }
         ]

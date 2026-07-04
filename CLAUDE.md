@@ -44,7 +44,7 @@ If you think any of the following — STOP. You're rationalizing away the workfl
 For **issue implementation**: Follow `.ai/workflows/implement-issue.md` step by step.
 For **sprint planning**: Follow `.ai/workflows/sprint-planning.md`.
 For **retrospectives**: Follow `.ai/workflows/retrospective.md`.
-For **shipping + external AI review**: Run `/ship-and-watch` (`.claude/commands/ship-and-watch.md`) — pushes the branch, opens/reuses the PR, and loops on Copilot review comments until silent.
+For **shipping + external AI review**: Run `/fresh-review` (`.claude/commands/fresh-review.md`) — iterative review by the isolated fresh-eyes agent until a clean round, no external quota. `/ship-and-watch` (`.claude/commands/ship-and-watch.md`) does the same via GitHub Copilot — optional extra pass on high-stakes PRs.
 Full system documentation: `.ai/CLAUDE.md`.
 
 **Keeping in sync with the shared template:** `core-manifest.yml` lists which files are shared workflow core; `.ai/skills/workflow-sync.md` syncs them both ways (project ↔ template).

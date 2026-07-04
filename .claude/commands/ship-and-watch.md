@@ -6,6 +6,11 @@ description: Push branch, open (or reuse) PR, request Copilot review, and loop t
 
 Ships the current branch and runs the AI code review gate (GitHub Copilot) as a self-driving loop.
 
+> **Copilot quota limited?** Use `/fresh-review` instead — same fresh, context-free
+> review via an isolated subagent (`.ai/agents/reviewer-fresh-eyes.md`), no polling
+> machinery, no Copilot minutes. Keep `/ship-and-watch` as an optional extra pass on
+> high-stakes PRs.
+
 This command exists to automate the external AI review feedback loop. In a sister
 project, one incident PR went through 9 Copilot review batches because a human had
 to manually shepherd each round. This command replaces that manual shepherding.

@@ -20,6 +20,7 @@ core:
   - .ai/agents/reviewer-security.md
   - .ai/agents/reviewer-conventions.md
   - .ai/agents/reviewer-lifecycle.md
+  - .ai/agents/reviewer-fresh-eyes.md
   - .ai/skills/compound-learning.md
   - .ai/skills/parallel-dispatch.md
   - .ai/skills/ideate.md
@@ -29,6 +30,7 @@ core:
   - .ai/skills/workflow-sync.md
   - .ai/scripts/evaluate-reviews.sh
   - .claude/commands/ship-and-watch.md
+  - .claude/commands/fresh-review.md
 
 # Adapted files — the STRUCTURE and check-categories are core; the content is
 # expected to be project-specific. Compare section-by-section, flag missing

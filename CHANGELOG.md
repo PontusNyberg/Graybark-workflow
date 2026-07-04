@@ -27,6 +27,9 @@ Union of three months of production evolution in the two downstream projects
   package publishing, staging secrets); read operations always pass
 - **`/ship-and-watch` command:** self-driving AI-review loop (GraphQL Copilot trigger,
   cache-aware 270s polling, two-silent-ticks exit, cutoff timestamp, hard caps)
+- **`/fresh-review` command + `reviewer-fresh-eyes` agent:** quota-free replacement for
+  the Copilot gate — an isolated adversarial reviewer (diff-only input, no session
+  context) run as a synchronous subagent in a fix-loop until a clean round
 - **`docs/` structure:** `plans/TEMPLATE.md` (self-contained plan format),
   `solutions/`, `brainstorms/`, `retros/`
 

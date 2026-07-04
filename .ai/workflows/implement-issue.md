@@ -383,6 +383,18 @@ Warnings requiring scope change → log as "known warning, out of scope".
 
 ### Step 10: Finalize
 
+#### Landing Protocol (mandatory postcondition)
+
+The issue is not done until every step below is completed. You are personally responsible for each step.
+
+1. Commit locally (format below)
+2. Push the branch to origin
+3. Create the PR via `gh pr create` (or the GitHub MCP equivalent if the user requested it)
+4. Verify that `git status` shows "up to date with origin/<branch>"
+5. Report the PR URL to the user
+
+**The plane has not landed until `git push` is complete.** Never say "ready to push when you want" — you push it yourself. Leaving work unpushed strands it locally and blocks the next session.
+
 ```bash
 # Stage ONLY files changed by specialists — NEVER git add -A
 git add <specific changed files>

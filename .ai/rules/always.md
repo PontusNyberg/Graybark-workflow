@@ -24,9 +24,33 @@ These rules apply to EVERY implementation, regardless of file type.
 - Never log sensitive data (tokens, passwords, PII)
 - Don't catch errors silently — handle them or let them bubble
 
+## Interactive prompts (FORBIDDEN)
+
+Never open an interactive prompt that waits for human input mid agent-session. It hangs the entire session — both for subagents and main session.
+
+This applies to:
+- Interactive editors (`vim`, `nano`, `git rebase -i`, `git add -i`, `gh pr create` without `--body`)
+- CLI prompts without defaults (`npm init` without `-y`, scripts that ask "Continue? [y/N]")
+- Git commands that may open an editor (`git commit` without `-m`, `git merge` without `--no-edit`, `git tag -a` without `-m`)
+
+**Instead:** Use flags, HEREDOC input, or pipe via stdin.
+
+```bash
+# WRONG — may open editor
+git commit
+git merge feature-branch
+
+# RIGHT — non-interactive
+git commit -m "feat: description"
+git merge feature-branch --no-edit -m "merge: description"
+```
+
+If a necessary tool only has interactive mode → stop and ask the user to run it instead. Hanging the session wastes tokens and blocks other work.
+
 ## Git
 
-- Commit messages: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
+- Use Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
+- Always reference the issue number in the commit message — either in the title `feat: X (#123)` or footer `Resolves #123`. It is your responsibility to link commits to a trackable issue.
 - One commit per logical change
 - Never commit: `.env`, `node_modules/`, `vendor/`, credentials, API keys
 - Check `git diff --cached` before commit

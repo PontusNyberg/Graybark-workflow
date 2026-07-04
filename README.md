@@ -56,8 +56,9 @@ If verify or review fails → the orchestrator sends feedback to the specialist 
 | **Advisors** | UX designer, scope guardian | Advise without coding |
 | **Reviewers** | correctness, security, conventions, lifecycle | Parallel diff review with JSON verdicts |
 | **Quality gate** | `verify.sh` | Blocks on lint, type, test, secret, scope failures |
+| **Ship-check** | `ready.sh` | Branch-ship-readiness audit before landing |
 | **Safety hook** | `.claude/hooks/safety-check.sh` | PreToolUse hook blocking dangerous commands (DROP TABLE, force push, rm -rf, secret staging) — with its own test suite |
-| **Commands** | `/ship-and-watch` | Self-driving push→PR→Copilot-review loop until the external reviewer is silent |
+| **Commands** | `/fresh-review`, `/ship-and-watch` | Iterative external-style review: isolated fresh-eyes agent (quota-free) or Copilot loop |
 | **Skills** | compound-learning, parallel-dispatch, ideate, backlog-reconcile, incident-fix-scoping, compress-logs, workflow-sync | Reusable agent routines |
 | **Rules** | always, on-frontend, on-backend, on-migration, on-testing | Injected into agent prompts based on affected files |
 | **Sync** | `core-manifest.yml` + `VERSION` + workflow-sync skill | Keep downstream projects and this template in sync |

@@ -35,6 +35,16 @@
 
 # --- Orchestrator skills (matched manually, not via file lists) ---
 
+parallel-dispatch:
+  file: .ai/skills/parallel-dispatch.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "parallel"
+    - "worktree"
+    - "independent packages"
+  # Trigger: Step 5 of implement-issue when 2+ work packages identified
+
 compound-learning:
   file: .ai/skills/compound-learning.md
   specialist: orchestrator

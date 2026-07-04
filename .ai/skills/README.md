@@ -42,6 +42,53 @@ Agent(
 
 (Same pattern as `implement-issue.md` Step 5 — `subagent_type` supplies the agent's system prompt; the prompt carries rules, skills and the work package.)
 
+## Skill format
+
+```markdown
+# Skill: <name>
+
+## Trigger
+<When this skill matches — keywords, file types, patterns>
+
+## Specialist
+<Which specialist uses this skill>
+
+## Steps
+1. <Step with context about why>
+2. <Step with code example if relevant>
+
+## Test requirements
+- <Mandatory tests>
+
+## Common mistakes
+- <Things that have gone wrong historically>
+```
+
+## Quality assurance — 3-tier model
+
+Skills have three paths into the system:
+
+| Tier | What | Gate | Example |
+|------|------|------|---------|
+| **Auto** | New mechanical check in verify.sh | Dry-run on 3 issues first | "Block TIMESTAMP without TZ" |
+| **Propose** | New skill, template, or rule | PR review by human | "API CRUD skill" |
+| **Log** | Observation without action | Retrospective analysis | "Specialist took 3 iterations due to X" |
+
+**Hard rule:** Skills (tier 2) ALWAYS require human approval via PR before activation.
+
+## Lifecycle
+
+See `.ai/workflows/skill-lifecycle.md` for the full lifecycle, including the security
+gate for skills from external sources.
+
+```
+Retrospective discovers pattern
+  → Agent proposes skill as .md file
+    → PR is created with the skill
+      → Human reviews and merges
+        → Skill active from next issue
+```
+
 ## Active skills
 
 | Skill | Type | Purpose |

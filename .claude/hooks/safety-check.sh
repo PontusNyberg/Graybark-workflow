@@ -69,7 +69,7 @@ fi
 
 # Block force push to main/master
 if echo "$COMMAND" | grep -iE "git\s+push.*--force" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(^|[[:space:]]|/)(main|master)([[:space:]]|$)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "(^|[[:space:]]|/|:)(main|master)([[:space:]]|$)" >/dev/null; then
         block_command "Force push to main/master is forbidden. This can destroy commit history."
     fi
     warn_command "Force push can destroy history. Only use on feature branches."
@@ -134,7 +134,7 @@ fi
 # ============================================================================
 
 # Block rm -rf on critical directories (allow build artifacts)
-if echo "$COMMAND" | grep -E "rm\s+.*-[a-z]*r[a-z]*f" >/dev/null; then
+if echo "$COMMAND" | grep -E "rm\s+.*(-[a-z]*r[a-z]*f|-[a-z]*f[a-z]*r|--recursive)" >/dev/null; then
     if echo "$COMMAND" | grep -iE "(\.git|node_modules|src|backend|frontend|apps|packages|\*|[[:space:]]/+([[:space:]]|$))" >/dev/null; then
         # Allow node_modules and common build-artifact cleanups
         if ! echo "$COMMAND" | grep -E "(node_modules|dist|build|\.next|\.expo|\.turbo|coverage|\.context)" >/dev/null; then

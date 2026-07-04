@@ -26,9 +26,9 @@ Matching skills are injected into the specialist prompt via the Agent tool, afte
 
 ```
 Agent(
+  subagent_type: "<your specialist agent from .claude/agents/>",  # agent definition loads via subagent_type — do NOT inline the agent file
   isolation: "worktree",
   prompt: """
-    <.claude/agents/<specialist>.md>
     <.ai/rules/always.md>
     <.ai/rules/<context>.md>
     <.ai/skills/<matching-skill>.md>   ← skill injected here if it matches
@@ -39,6 +39,8 @@ Agent(
   """
 )
 ```
+
+(Same pattern as `implement-issue.md` Step 5 — `subagent_type` supplies the agent's system prompt; the prompt carries rules, skills and the work package.)
 
 ## Active skills
 

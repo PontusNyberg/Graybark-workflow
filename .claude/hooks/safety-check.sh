@@ -50,7 +50,7 @@ fi
 
 # Block DELETE/UPDATE without WHERE against production
 if echo "$COMMAND" | grep -iE "(DELETE|UPDATE)\s+\w+" >/dev/null && ! echo "$COMMAND" | grep -iE "WHERE" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(\bprod\b|\bproduction\b|TODO-your-prod-db)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "((^|[^a-zA-Z0-9_])prod([^a-zA-Z0-9_]|$)|(^|[^a-zA-Z0-9_])production([^a-zA-Z0-9_]|$)|TODO-your-prod-db)" >/dev/null; then
         block_command "DELETE/UPDATE without WHERE is forbidden on production databases."
     fi
     warn_command "DELETE/UPDATE without WHERE — be careful!"
@@ -58,7 +58,7 @@ fi
 
 # Block DROP COLUMN on production
 if echo "$COMMAND" | grep -iE "ALTER\s+TABLE.*DROP\s+COLUMN" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(\bprod\b|\bproduction\b|TODO-your-prod-db)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "((^|[^a-zA-Z0-9_])prod([^a-zA-Z0-9_]|$)|(^|[^a-zA-Z0-9_])production([^a-zA-Z0-9_]|$)|TODO-your-prod-db)" >/dev/null; then
         block_command "DROP COLUMN on production requires a migration. Use the migration system."
     fi
 fi
@@ -69,7 +69,7 @@ fi
 
 # Block force push to main/master
 if echo "$COMMAND" | grep -iE "git\s+push.*--force" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(main|master)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "(^|[[:space:]]|/)(main|master)([[:space:]]|$)" >/dev/null; then
         block_command "Force push to main/master is forbidden. This can destroy commit history."
     fi
     warn_command "Force push can destroy history. Only use on feature branches."
@@ -85,7 +85,7 @@ if echo "$COMMAND" | grep -iE "git\s+reset\s+--hard" >/dev/null; then
 fi
 
 # Block deletion of main/master branch
-if echo "$COMMAND" | grep -iE "git\s+branch\s+-D\s+(main|master)" >/dev/null; then
+if echo "$COMMAND" | grep -iE "git\s+branch\s+-D\s+(main|master)([[:space:]]|$)" >/dev/null; then
     block_command "Deleting the main/master branch is forbidden."
 fi
 
@@ -105,7 +105,7 @@ fi
 
 # Block force removal of production containers
 if echo "$COMMAND" | grep -iE "docker\s+(rm|stop|kill).*-f" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(\bprod\b|\bproduction\b|TODO-your-prod-db)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "((^|[^a-zA-Z0-9_])prod([^a-zA-Z0-9_]|$)|(^|[^a-zA-Z0-9_])production([^a-zA-Z0-9_]|$)|TODO-your-prod-db)" >/dev/null; then
         block_command "Force removal of production containers is forbidden. Use graceful shutdown."
     fi
 fi
@@ -135,7 +135,7 @@ fi
 
 # Block rm -rf on critical directories (allow build artifacts)
 if echo "$COMMAND" | grep -E "rm\s+.*-[a-z]*r[a-z]*f" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(\.git|node_modules|src|backend|frontend|apps|packages|\*|/)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "(\.git|node_modules|src|backend|frontend|apps|packages|\*|[[:space:]]/+([[:space:]]|$))" >/dev/null; then
         # Allow node_modules and common build-artifact cleanups
         if ! echo "$COMMAND" | grep -E "(node_modules|dist|build|\.next|\.expo|\.turbo|coverage|\.context)" >/dev/null; then
             block_command "rm -rf on important directories is forbidden. Too dangerous for automation."
@@ -154,7 +154,7 @@ fi
 
 # Warn on direct schema changes against production
 if echo "$COMMAND" | grep -iE "(ALTER|CREATE)\s.*TABLE" >/dev/null; then
-    if echo "$COMMAND" | grep -iE "(\bprod\b|\bproduction\b|TODO-your-prod-db)" >/dev/null; then
+    if echo "$COMMAND" | grep -iE "((^|[^a-zA-Z0-9_])prod([^a-zA-Z0-9_]|$)|(^|[^a-zA-Z0-9_])production([^a-zA-Z0-9_]|$)|TODO-your-prod-db)" >/dev/null; then
         warn_command "Direct schema change on production. Use the migration system instead."
     fi
 fi
@@ -184,8 +184,8 @@ fi
 # Regex patterns with word boundaries — plain "prod" would also match e.g. "products"
 PROD_IDENTIFIERS=(
     "TODO-your-prod-db"
-    "\bprod\b"
-    "\bproduction\b"
+    "(^|[^a-zA-Z0-9_])prod([^a-zA-Z0-9_]|$)"
+    "(^|[^a-zA-Z0-9_])production([^a-zA-Z0-9_]|$)"
 )
 
 # Check whether the command touches a production identifier

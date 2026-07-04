@@ -274,7 +274,8 @@ section "Review Gate"
 
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 if [[ "$CURRENT_BRANCH" == sprint* || "$CURRENT_BRANCH" == feat/* || "$CURRENT_BRANCH" == fix/* || "$CURRENT_BRANCH" == hotfix/* ]]; then
-  REVIEW_FILES=(/tmp/review-correctness.json /tmp/review-security.json /tmp/review-conventions.json /tmp/review-lifecycle.json)
+  # Lifecycle is conditional (stateful diffs only — see implement-issue Step 8) and handled separately below
+  REVIEW_FILES=(/tmp/review-correctness.json /tmp/review-security.json /tmp/review-conventions.json)
   MISSING_REVIEWS=()
   FAILED_REVIEWS=()
 
@@ -291,6 +292,14 @@ if [[ "$CURRENT_BRANCH" == sprint* || "$CURRENT_BRANCH" == feat/* || "$CURRENT_B
       fi
     fi
   done
+
+  # Conditional lifecycle review: check verdict only if the reviewer was dispatched
+  if [ -s /tmp/review-lifecycle.json ]; then
+    verdict=$(grep -o '"verdict"[[:space:]]*:[[:space:]]*"[^"]*"' /tmp/review-lifecycle.json 2>/dev/null | head -1 | grep -o '"[^"]*"$' | tr -d '"')
+    if [ "$verdict" = "fail" ]; then
+      FAILED_REVIEWS+=("lifecycle")
+    fi
+  fi
 
   if [ ${#MISSING_REVIEWS[@]} -gt 0 ]; then
     fail "Reviews missing: ${MISSING_REVIEWS[*]} — run parallel review before commit"

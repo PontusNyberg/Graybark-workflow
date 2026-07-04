@@ -111,7 +111,7 @@ New skills require PR review. See `.ai/workflows/skill-lifecycle.md`.
 | Scope, prioritization (advisor) | TODO: Name | `.claude/agents/product-skeptic.md` |
 | UX (advisor) | TODO: Name | `.claude/agents/product-designer.md` |
 
-**Reviewers (4 generic, always run in parallel):** correctness, security, conventions, lifecycle — `.ai/agents/reviewer-*.md`. Plus an optional specialist cross-reviewer.
+**Reviewers:** correctness, security, conventions always; lifecycle conditionally (stateful diffs — deterministic trigger in implement-issue Step 8) — `.ai/agents/reviewer-*.md`. Plus an optional specialist cross-reviewer.
 
 ## Parallel dispatch (worktrees)
 

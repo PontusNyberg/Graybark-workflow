@@ -255,8 +255,20 @@ verify.sh checks (customize for your stack):
 
 ### Step 8: Parallel review
 
-Spawn reviewers in parallel via Agent tool. Always **4 generic** (correctness,
-security, conventions, lifecycle) + optional specialist reviewer.
+Spawn reviewers in parallel via Agent tool. Always **3 generic** (correctness,
+security, conventions) + **Rev-Lifecycle conditionally** (trigger below) + optional
+specialist reviewer.
+
+**Lifecycle trigger (deterministic — run on the diff's ADDED lines):**
+
+```bash
+git diff "$BASE"...HEAD | grep -E '^\+' | grep -qiE 'setTimeout|setInterval|addEventListener|removeEventListener|subscribe|unsubscribe|useEffect|AbortController|EventEmitter|retry|backoff|mutex|circuit|token[_ ]?refresh|refresh[_ ]?token|state.?machine|onSnapshot|realtime' \
+  && DISPATCH_LIFECYCLE=yes || DISPATCH_LIFECYCLE=no
+```
+
+Hit → dispatch Rev-Lifecycle (Opus) alongside the other three. No hit → skip it: a pure
+UI-text/docs diff has no lifecycle surface, and the dispatch costs an Opus agent. The
+grep is a floor, not a ceiling — when in doubt, dispatch.
 
 Reviewers do **not** need worktrees — they don't change files, only analyze diff.
 
@@ -309,6 +321,7 @@ Agent(
   """
 )
 
+# Only if DISPATCH_LIFECYCLE=yes (see trigger at the top of Step 8):
 Agent(
   description: "Review: lifecycle",
   prompt: """

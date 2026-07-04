@@ -201,7 +201,7 @@ Every multi-iteration issue teaches something. The `compound-learning` skill cap
 | 5b. Merge | Merge worktree branches to feature branch | Orchestrator |
 | 6. Verify completeness | All ACs covered? All planned files changed? | Orchestrator |
 | 7. Verify quality | Run verify.sh (lint, types, tests, secrets) | verify.sh |
-| 8. Review | Parallel review (4 generic + cross-review) | Reviewers |
+| 8. Review | Parallel review (3 generic + conditional lifecycle + cross-review) | Reviewers |
 | 9. Evaluate | Parse JSON verdicts, check for blockers | evaluate-reviews.sh |
 | 10. Commit | Stage, commit, push, create PR | Orchestrator |
 | 11. Learn | Document insights in docs/solutions/ | Orchestrator |

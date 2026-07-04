@@ -97,7 +97,7 @@ Defined in `.claude/agents/`. Dispatched by main session via Agent tool with `is
 | **Correctness** | `.ai/agents/reviewer-correctness.md` | Acceptance criteria, logic, edge cases |
 | **Security** | `.ai/agents/reviewer-security.md` | Auth, injections, data leaks |
 | **Conventions** | `.ai/agents/reviewer-conventions.md` | Code style, patterns |
-| **Lifecycle** | `.ai/agents/reviewer-lifecycle.md` | State machines, signal journeys across module boundaries, resource cleanup, second-occurrence bugs |
+| **Lifecycle** (conditional) | `.ai/agents/reviewer-lifecycle.md` | State machines, signal journeys across module boundaries, resource cleanup, second-occurrence bugs — dispatched only for stateful diffs |
 
 ## Specialist routing — who codes what?
 
@@ -149,7 +149,7 @@ git diff main...HEAD > /tmp/diff-full.txt
 Agent(description: "Review: correctness", prompt: "<reviewer-def + issue + diff>")
 Agent(description: "Review: security", prompt: "<reviewer-def + issue + diff>")
 Agent(description: "Review: conventions", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: lifecycle", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: lifecycle", prompt: "<reviewer-def + issue + diff>")  # conditional — only for stateful diffs (trigger in implement-issue Step 8)
 Agent(description: "Review: specialist cross-review", prompt: "<cross-reviewer-def + issue + diff>")
 
 # Evaluate results

@@ -99,9 +99,9 @@ Respond with a JSON object:
 
 ## When to invoke this reviewer
 
-Invoke ALWAYS in Step 8 of `implement-issue.md` workflow, in parallel with the correctness/security/conventions reviewers.
+**Conditional** — invoked in Step 8 of `implement-issue.md` only when the diff's added lines hit the stateful-code trigger (deterministic grep in Step 8: timers, listeners, subscriptions, retry/backoff, mutex, circuit breakers, token refresh, state machines). A pure UI-text/docs diff has no lifecycle surface. The trigger is a floor, not a ceiling — when in doubt, dispatch.
 
-Particularly load-bearing when the diff:
+Load-bearing when the diff:
 - Introduces or extends a safeguard primitive (circuit breaker, mutex, rate limiter, retry logic, classifier)
 - Modifies any state-machine (retry, circuit breaker, outage detection, session lifecycle)
 - Adds or changes exception types crossing module boundaries

@@ -40,9 +40,11 @@ adapted:
   - .ai/skills/triggers.yml        # orchestrator entries core; specialist skills project
 
 # Never synced — pure project domain. Templates here are examples only.
+# Entries are globs; files explicitly listed under core/adapted above take
+# precedence over a matching glob here.
 local:
   - CLAUDE.md
   - .ai/CLAUDE.md
   - .ai/rules/on-*.md
-  - .ai/skills/* (specialist skills)
+  - .ai/skills/*   # specialist skills — the orchestrator skills enumerated under core take precedence
   - .claude/agents/*

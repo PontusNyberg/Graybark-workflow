@@ -272,7 +272,8 @@ this gate as a self-driving loop.
 
 ```
 # Prepare diff (run in Bash)
-git diff master...HEAD > /tmp/diff-full.txt
+BASE=$(gh repo view --json defaultBranchRef -q .defaultBranchRef.name 2>/dev/null || echo master)
+git diff "$BASE"...HEAD > /tmp/diff-full.txt
 DIFF_LINES=$(wc -l < /tmp/diff-full.txt)
 
 # Dispatch all reviewers in parallel in the same message:

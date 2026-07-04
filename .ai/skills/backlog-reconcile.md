@@ -16,8 +16,8 @@ but make the decisions in the main session.
 
 ## Steps
 
-1. **Fetch truth.** `git fetch origin master` (or `main`) and work from the latest default
-   branch — parallel merges make the local picture stale.
+1. **Fetch truth.** Fetch the default branch (`git fetch origin <default-branch>`) and work
+   from its latest state — parallel merges make the local picture stale.
 
 2. **List open threads.** Collect open issues, plans in `docs/plans/`, and any `needs-human-*` issues.
 
@@ -45,5 +45,5 @@ but make the decisions in the main session.
 ## Common mistakes
 
 - Closing an issue based on memory instead of verifying in the code (off-by-one against reality).
-- Forgetting `git fetch origin master` first → judging against a stale local picture.
+- Forgetting to fetch the default branch first → judging against a stale local picture.
 - Closing GitHub issues without the user's confirmation when unsure.

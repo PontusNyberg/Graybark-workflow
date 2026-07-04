@@ -43,9 +43,9 @@ if echo "$COMMAND" | grep -iE "(DROP\s+(DATABASE|TABLE|SCHEMA))" >/dev/null; the
     block_command "DROP DATABASE/TABLE/SCHEMA is forbidden. Use migrations instead."
 fi
 
-# Block TRUNCATE without WHERE
-if echo "$COMMAND" | grep -iE "TRUNCATE\s+\w+" >/dev/null && ! echo "$COMMAND" | grep -iE "WHERE" >/dev/null; then
-    block_command "TRUNCATE without WHERE can delete all data. Add a WHERE condition."
+# Block TRUNCATE (it cannot be filtered — deletes every row in the table)
+if echo "$COMMAND" | grep -iE "TRUNCATE\s+\w+" >/dev/null; then
+    block_command "TRUNCATE deletes all rows and cannot be filtered. Use DELETE with a WHERE clause, or a migration."
 fi
 
 # Block DELETE/UPDATE without WHERE against production

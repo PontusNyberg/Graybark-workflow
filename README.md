@@ -243,7 +243,7 @@ Translation and renamed specialists are not drift — mechanics, gates, threshol
 
 ## Origin
 
-This workflow was extracted from a production project ([PennyKoll](https://github.com/PontusNyberg)) where it orchestrated 17+ sprints of development. The project-specific parts were replaced with `TODO:` markers, but the orchestration patterns, quality gates, and agent definitions are battle-tested.
+This workflow was extracted from a production project where it orchestrated 17+ sprints of development. The project-specific parts were replaced with `TODO:` markers, but the orchestration patterns, quality gates, and agent definitions are battle-tested.
 
 ## License
 

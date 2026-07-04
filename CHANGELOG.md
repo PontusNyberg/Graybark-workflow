@@ -6,8 +6,8 @@ Downstream projects track their synced version in `.ai/graybark.yml`.
 
 ## 2.0.0 — 2026-07-04
 
-Union of three months of production evolution in the two downstream projects
-(PennyKoll, Verolog), plus the sync layer that keeps them aligned going forward.
+Union of three months of production evolution in the two downstream production
+projects, plus the sync layer that keeps them aligned going forward.
 
 ### Added
 - **Sync layer:** `VERSION`, `core-manifest.yml` (core/adapted/local file classification),
@@ -45,5 +45,5 @@ Union of three months of production evolution in the two downstream projects
 
 ## 1.0.0 — 2026-04-03
 
-Initial extraction from PennyKoll: orchestrator + worktree-isolated specialists,
+Initial extraction from a production project: orchestrator + worktree-isolated specialists,
 3 parallel reviewers, verify.sh gate, 4-iteration limit, compound learning.

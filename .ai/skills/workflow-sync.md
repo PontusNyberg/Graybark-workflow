@@ -68,6 +68,12 @@ This keeps upstream fresh so the sprint-start sync usually finds nothing.
 
 ## Rules
 
+- **Graybark is a PUBLIC repo — everything pushed there is world-readable.** This applies
+  to file contents, commit messages, PR titles/bodies and review-thread replies alike.
+  Never include upstream: project/product names, private repo names or links, internal
+  paths, IPs, domains, customer/incident details, or anything from gitignored files.
+  Attribution is always anonymous: *"a sister project"*, *"a production project"*.
+  Before every upstream push: grep the outgoing content for project identifiers.
 - **Never lower quality on either side** — sync direction is "union of best", not "latest wins".
 - **Never push project secrets/identifiers upstream** — prod names, IPs, API hosts, bot
   workarounds tied to a private repo tier stay generic in Graybark.

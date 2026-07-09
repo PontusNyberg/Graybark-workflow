@@ -116,6 +116,24 @@ Agent(isolation: "worktree", prompt: "Backend: create API...")
 Agent(isolation: "worktree", prompt: "Frontend: build UI against the new API...")
 ```
 
+**CRITICAL — worktrees fork from the DEFAULT branch (main/master), not from
+your checked-out sprint branch** (verified empirically on a production
+project, 2026-07-09). A sequential package that builds on earlier merged
+sprint work does NOT see that work automatically. Open the prompt with a
+merge-first step:
+
+```
+STEP 0 (MANDATORY FIRST): Your worktree forks from the default branch. Run:
+    git merge <sprint-HEAD-sha> --no-edit
+Afterwards verify that <a known file from the earlier work package> exists.
+```
+
+Give the exact **sha** (not a branch name — the orchestrator moves the branch
+with every merge) and a verifiable postcondition. Worktrees share the object
+store with the main repo, so all local commits are reachable by sha even
+without a remote. An already-dispatched agent can be corrected mid-flight via
+a follow-up message (SendMessage).
+
 ### Hybrid (partially independent)
 
 If 3+ work packages where A and B are independent but C depends on both:

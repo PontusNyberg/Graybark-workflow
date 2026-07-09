@@ -4,6 +4,18 @@ All notable changes to the Graybark workflow core. Versions follow semver:
 minor = new mechanics/components, patch = fixes/clarifications.
 Downstream projects track their synced version in `.ai/graybark.yml`.
 
+## 2.1.0 — 2026-07-09
+
+### Added
+- **parallel-dispatch: mandatory STEP 0 merge for dependent sequential packages.**
+  Worktree agents fork from the DEFAULT branch, not from the orchestrator's
+  checked-out sprint branch — a sequential package building on earlier merged
+  sprint work does not see it automatically. The skill now prescribes a
+  merge-first prompt step (`git merge <sprint-HEAD-sha> --no-edit` + verifiable
+  postcondition; exact sha, never a branch name). Verified empirically on a
+  production project, 2026-07-09: one specialist built on a false premise and a
+  second was headed into avoidable merge conflicts before mid-flight correction.
+
 ## 2.0.0 — 2026-07-04
 
 Union of three months of production evolution in the two downstream production

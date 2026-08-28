@@ -4,7 +4,19 @@ All notable changes to the Graybark workflow core. Versions follow semver:
 minor = new mechanics/components, patch = fixes/clarifications.
 Downstream projects track their synced version in `.ai/graybark.yml`.
 
-## 2.1.0 — 2026-07-09
+## 2.2.0 — 2026-08-28
+
+### Changed
+- **Slash commands migrated to Claude Code skills.** `.claude/commands/fresh-review.md`
+  and `.claude/commands/ship-and-watch.md` moved to `.claude/skills/<name>/SKILL.md`
+  with `name` + `description` frontmatter. Same `/fresh-review` and `/ship-and-watch`
+  invocations for the user, but now the model can also trigger them itself via the
+  Skill tool when the workflow reaches the shipping/review step, and the description
+  is visible in every session's skill listing. Backported from a downstream project
+  (2026-08-28). `core-manifest.yml` core entries updated accordingly (manifest
+  `version` also aligned with `VERSION` — it had lagged at 2.0.0 since 2.1.0).
+
+
 
 ### Added
 - **parallel-dispatch: mandatory STEP 0 merge for dependent sequential packages.**

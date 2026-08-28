@@ -1,8 +1,9 @@
 ---
-description: Push branch, open (or reuse) PR, request Copilot review, and loop to address Copilot comments until silent.
+name: ship-and-watch
+description: Push the branch, open (or reuse) the PR, request a GitHub Copilot review, and loop to address Copilot comments until silent. Optional extra gate on high-stakes PRs — /fresh-review is the default (quota-free) gate.
 ---
 
-# /ship-and-watch
+# ship-and-watch
 
 Ships the current branch and runs the AI code review gate (GitHub Copilot) as a self-driving loop.
 

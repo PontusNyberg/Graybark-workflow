@@ -279,7 +279,7 @@ caught lifecycle and cross-module bugs that all three conventional internal
 reviewers missed (5 CRITICAL bugs in one PR's case). If the external reviewer has
 open comments, address them BEFORE invoking internal reviewers — running internal
 reviewers on a diff already flagged wastes their context and confuses the verdict.
-The `/ship-and-watch` command (`.claude/commands/ship-and-watch.md`) automates
+The `ship-and-watch` skill (`.claude/skills/ship-and-watch/SKILL.md`) automates
 this gate as a self-driving loop.
 
 ```

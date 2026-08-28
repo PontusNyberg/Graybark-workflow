@@ -6,7 +6,7 @@
 # another language (e.g. Swedish) — translation alone is not drift. Drift =
 # differences in mechanics, steps, gates, rules or formats.
 
-version: 2.0.0
+version: 2.2.0
 
 # Synced files — same mechanics everywhere. Improvements flow both ways:
 # project -> Graybark (backport PR + version bump) and Graybark -> project.
@@ -29,8 +29,8 @@ core:
   - .ai/skills/compress-logs.md
   - .ai/skills/workflow-sync.md
   - .ai/scripts/evaluate-reviews.sh
-  - .claude/commands/ship-and-watch.md
-  - .claude/commands/fresh-review.md
+  - .claude/skills/ship-and-watch/SKILL.md
+  - .claude/skills/fresh-review/SKILL.md
 
 # Adapted files — the STRUCTURE and check-categories are core; the content is
 # expected to be project-specific. Compare section-by-section, flag missing

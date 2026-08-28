@@ -54,7 +54,7 @@ If you think any of the following — STOP. You're rationalizing away the workfl
 For **issue implementation**: Follow `.ai/workflows/implement-issue.md` step by step.
 For **sprint planning**: Follow `.ai/workflows/sprint-planning.md`.
 For **retrospectives**: Follow `.ai/workflows/retrospective.md`.
-For **shipping + external AI review**: Run `/fresh-review` (`.claude/commands/fresh-review.md`) — iterative review by the isolated fresh-eyes agent until a clean round, no external quota. `/ship-and-watch` (`.claude/commands/ship-and-watch.md`) does the same via GitHub Copilot — optional extra pass on high-stakes PRs.
+For **shipping + external AI review**: Run `/fresh-review` (`.claude/skills/fresh-review/SKILL.md`) — iterative review by the isolated fresh-eyes agent until a clean round, no external quota. `/ship-and-watch` (`.claude/skills/ship-and-watch/SKILL.md`) does the same via GitHub Copilot — optional extra pass on high-stakes PRs. Both are Claude Code skills: the user triggers them with `/<name>`, and the model can trigger them itself via the Skill tool when the workflow reaches that step.
 Full system documentation: `.ai/CLAUDE.md`.
 
 **Keeping in sync with the shared template:** `core-manifest.yml` lists which files are shared workflow core; `.ai/skills/workflow-sync.md` syncs them both ways (project ↔ template).

@@ -126,9 +126,3 @@ Reviewing a PR that adds a per-entity circuit breaker:
 - ✗ Blocked-call exception is `new Error('CIRCUIT_OPEN: ...')` — string sentinel
 - ✗ The error classifier does not recognize the blocked exception; falls through to a default category
 - ✗ Internal counters reset across implicit rebuilds
-
-The fail criteria above are exactly the bugs that shipped in the sister-project incident and were caught by an external AI reviewer, not by the internal reviewers.
-
-## Origin
-
-Created in response to a sister-project incident where 5 CRITICAL lifecycle bugs passed three conventional reviewers and were only found post-merge by an external AI review.

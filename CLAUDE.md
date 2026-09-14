@@ -2,18 +2,16 @@
 
 TODO: Short project description. Tech stack, purpose, team.
 
-## Pre-flight (BLOCKING — before ALL coding)
+## Pre-flight (before code changes)
 
-Before writing or changing a single line of code, these steps MUST be completed:
+Code changes go through `.ai/workflows/implement-issue.md`: quality in this project comes from the plan → specialist → verify → review loop, and the verify.sh scope check depends on the plan existing. Before changing code:
 
-1. **Load** `.ai/rules/always.md`
-2. **Load** `.ai/workflows/implement-issue.md` and follow steps 1–4
-3. **Create** `.ai/logs/planned-files.txt` with all files to be changed
-4. **Load** relevant rules from the table below based on affected files
-5. **Delegate** to specialists via Agent tool with `isolation: "worktree"` — do NOT code yourself
+1. Load `.ai/rules/always.md` and the rules matching the affected files (table below)
+2. Follow implement-issue steps 1–4 — reading the code to plan is part of this
+3. Write `.ai/logs/planned-files.txt` with all files to be changed
+4. Delegate the implementation to specialists via Agent tool with `isolation: "worktree"`
 
-If the user says "go ahead", "implement", or similar — start with step 1, NOT with code.
-Jumping straight to coding without pre-flight is a workflow violation.
+"Implement #42", "go ahead", "add X" or "fix Y" says what to do; the workflow decides how. Code directly only when the user explicitly says so ("skip workflow", "code directly") or the change qualifies as a small issue (see Iteration logs below).
 
 ### Pre-commit hook (secret scan)
 
@@ -24,30 +22,6 @@ git config core.hooksPath .githooks
 ```
 
 The hook is a safety net — it does not replace discipline around never committing secrets in cleartext.
-
-### Instruction priority
-
-1. **User's explicit instructions** (direct requests, conversation context) — highest
-2. **This CLAUDE.md + workflows/skills** — overrides default behavior
-3. **System default** — lowest
-
-If the user says "skip workflow" or "code directly" — obey the user. But "implement #42" does NOT mean "skip workflow" — it means "follow the workflow to implement #42".
-
-**Principle:** User instructions say WHAT, not HOW. "Add X" or "Fix Y" does not mean skip pre-flight — it says what to do, the workflow determines how.
-
-### Rationalization guard
-
-If you think any of the following — STOP. You're rationalizing away the workflow:
-
-| Thought | Reality |
-|---------|---------|
-| "This is just a simple change" | If it touches code → pre-flight applies (exception: <20 lines, see below) |
-| "I need to explore the code first" | Pre-flight comes BEFORE implementation exploration |
-| "I can quickly fix this without workflow" | Quick fixes without workflow have caused regressions before |
-| "This doesn't need formal process" | If the workflow applies → follow it. Period. |
-| "I'll just do a small thing first" | Workflow check BEFORE you do anything |
-| "The user seems to want it fast" | Fast = follow the workflow efficiently, not skip it |
-| "I already know what's needed" | Knowing the answer ≠ skipping the process |
 
 ## AI Agent System
 

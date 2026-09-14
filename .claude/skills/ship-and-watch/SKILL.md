@@ -159,9 +159,8 @@ cause the new run to exit after a single silent tick instead of two:
 echo 0 > .ai/logs/copilot-silent-ticks.txt
 ```
 
-Use the `loop` skill with a 270-second interval (under the 5-minute prompt-cache
-TTL — see Anthropic prompt cache docs; 300 s would burn the cache every tick).
-The loop body is the steps below.
+Use the `loop` skill with a 270-second interval — Copilot takes minutes per review,
+so a shorter interval only adds empty ticks. The loop body is the steps below.
 
 **Loop body (each tick):**
 
@@ -362,8 +361,9 @@ rm -f .ai/logs/copilot-cutoff.txt .ai/logs/copilot-silent-ticks.txt \
 
 ## Rationale and tradeoffs
 
-- **270 s interval** stays inside the Anthropic prompt cache TTL (5 min).
-  Picking 300 s would burn the cache on every tick.
+- **270 s interval** is paced to Copilot's review latency; the tick and silence
+  caps below assume it. Claude Code sessions normally run with a 1-hour prompt-cache
+  TTL, so the interval is not a cache constraint.
 - **GraphQL `requestReviews` with `botIds:["BOT_kgDOCnlnWA"]`** is the reliable
   trigger for both first reviews and re-reviews on free private repos (no Team
   org → no rulesets, no individual auto-toggle on that tier). The REST POST is

@@ -53,9 +53,8 @@ Spawn UX or scope advisors via Agent tool if the issue touches their domain:
 ```
 Agent(
   description: "UX advisor: advice for issue #<NR>",
+  subagent_type: "<your UX advisor agent from .claude/agents/>",  # loads the agent definition and its model tier
   prompt: """
-    <contents from .claude/agents/product-designer.md>
-
     I'm implementing the following issue. Give UX advice, short and concrete.
 
     ISSUE:
@@ -81,8 +80,7 @@ forces you to split incident work into:
 2. PR 2 — visibility / adjacent hardening / postmortem
 3. PR 3 — process improvements (reviewer prompts, skills, tooling)
 
-In a sister project, one incident PR swallowed all three phases and took
-9 AI-review rounds over 3 days to converge. Don't repeat that.
+An incident PR that mixes all three phases grows too large for review rounds to converge.
 
 **Save planned files** for scope validation in verify.sh:
 
@@ -136,16 +134,7 @@ Specialists are dispatched via **Agent tool with `isolation: "worktree"`**. Each
 
 #### Parallel dispatch (independent work packages)
 
-Dispatch all specialists in **the same message** — Claude Code runs them simultaneously:
-
-**Prompt ordering (important for token efficiency):**
-
-1. Agent definition (background/role)
-2. Rules (constraints)
-3. Skills (if match)
-4. Issue context (background)
-5. Work package (what to do)
-6. Test requirements (last — the most important thing to remember)
+Dispatch all specialists in **the same message** — Claude Code runs them simultaneously. `subagent_type` loads the agent definition (and its model tier); the prompt carries rules, matching skills, the issue and the work package:
 
 ```
 Agent(
@@ -163,11 +152,9 @@ Agent(
     WORK PACKAGE:
     Create API endpoint for ...
 
-    TEST REQUIREMENTS (MANDATORY):
-    You MUST write tests that prove the code fulfills acceptance criteria:
+    TEST REQUIREMENTS — tests that prove the code fulfills the acceptance criteria:
     1. ...
     2. ...
-    Without tests, verify.sh will block.
   """
 )
 
@@ -186,9 +173,8 @@ Agent(
     WORK PACKAGE:
     <description of frontend work package>
 
-    TEST REQUIREMENTS (MANDATORY):
+    TEST REQUIREMENTS:
     <specific test requirements>
-    Without tests, verify.sh will block.
   """
 )
 ```
@@ -274,9 +260,9 @@ Reviewers do **not** need worktrees — they don't change files, only analyze di
 
 **Optional AI code review gate (e.g. GitHub Copilot) — before internal reviewers.**
 If your repo has an external AI reviewer attached, push the branch, open the PR,
-and let it comment first. Empirically (sister project), an external AI reviewer
-caught lifecycle and cross-module bugs that all three conventional internal
-reviewers missed (5 CRITICAL bugs in one PR's case). If the external reviewer has
+and let it comment first — a reviewer without the author's context catches
+lifecycle and cross-module bugs that context-sharing internal reviewers tend to
+miss. If the external reviewer has
 open comments, address them BEFORE invoking internal reviewers — running internal
 reviewers on a diff already flagged wastes their context and confuses the verdict.
 The `ship-and-watch` skill (`.claude/skills/ship-and-watch/SKILL.md`) automates
@@ -296,6 +282,7 @@ DIFF_LINES=$(wc -l < /tmp/diff-full.txt)
 
 Agent(
   description: "Review: correctness",
+  model: "opus",  # tiers per .claude/agents/TEAM.md — reviewers have no agent file, so pass model explicitly
   prompt: """
     <contents from .ai/agents/reviewer-correctness.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -305,6 +292,7 @@ Agent(
 
 Agent(
   description: "Review: security",
+  model: "opus",
   prompt: """
     <contents from .ai/agents/reviewer-security.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -314,6 +302,7 @@ Agent(
 
 Agent(
   description: "Review: conventions",
+  model: "sonnet",
   prompt: """
     <contents from .ai/agents/reviewer-conventions.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -324,6 +313,7 @@ Agent(
 # Only if DISPATCH_LIFECYCLE=yes (see trigger at the top of Step 8):
 Agent(
   description: "Review: lifecycle",
+  model: "opus",
   prompt: """
     <contents from .ai/agents/reviewer-lifecycle.md>
     ISSUE: <contents from .ai/logs/current-issue.json>
@@ -455,7 +445,7 @@ may contain sensitive data (PII, decrypted values) so they can never be committe
 lesson that stays only in the log is **lost**. Step 11 is how it survives. This is part
 of "done", not optional cleanup.
 
-**This step has a mandatory decision — you MUST do exactly one of:**
+**Do exactly one of:**
 
 A. **Write a solution doc** (required when the issue was non-trivial — ANY of: 2+ iterations,
    a non-obvious bug, the approach changed, a workaround, a review/CI-caught defect, a
@@ -464,7 +454,7 @@ A. **Write a solution doc** (required when the issue was non-trivial — ANY of:
 B. **Explicitly waive it** (only for genuinely trivial issues — text/config/rename,
    <20 lines, 1 clean iteration). Record `Solution-doc: N/A — <one-line reason>` in the PR body.
 
-Silently skipping = workflow violation. verify.sh can emit a non-blocking reminder when a
+verify.sh can emit a non-blocking reminder when a
 non-trivial code diff carries no `docs/solutions/` change and no `Solution-doc:` marker.
 Note: such a check detects the marker in the **diff or recent commit messages only** — it
 cannot read the PR body. So to silence the reminder, put `Solution-doc: …` in a commit
@@ -553,8 +543,8 @@ if iteration >= 4:
 - Implementation affects other open issues that must stay in sync
 - A security or product decision needs sign-off
 
-**You MUST pick a level** when escalating. A plain ungraded "needs-human" is not allowed.
-If torn between P1 and P2 — pick P1 (the more cautious one).
+Every escalation carries a level — the label decides how the human triages it.
+If torn between P1 and P2, pick P1.
 
 ### Escalation format
 

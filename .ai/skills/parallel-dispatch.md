@@ -64,39 +64,39 @@ Dispatch all specialists in **the same message** with `Agent(isolation: "worktre
 ```
 Agent(
   description: "Backend: issue #X",
+  subagent_type: "<your backend agent from .claude/agents/>",  # loads the agent definition and its model tier
   isolation: "worktree",
   prompt: """
-    <agent definition from .claude/agents/backend-developer.md>
     <rules from .ai/rules/always.md + context rules>
     <matching skill if any>
+
+    ISSUE:
+    <issue data from .ai/logs/current-issue.json>
 
     WORK PACKAGE:
     <description of what to do>
 
-    TEST REQUIREMENTS (MANDATORY):
+    TEST REQUIREMENTS:
     <specific tests that must be written>
-
-    ISSUE:
-    <issue data from .ai/logs/current-issue.json>
   """
 )
 
 Agent(
   description: "Frontend: issue #X",
+  subagent_type: "<your frontend agent from .claude/agents/>",
   isolation: "worktree",
   prompt: """
-    <agent definition from .claude/agents/frontend-developer.md>
     <rules from .ai/rules/always.md + context rules>
     <matching skill if any>
+
+    ISSUE:
+    <issue data from .ai/logs/current-issue.json>
 
     WORK PACKAGE:
     <description of what to do>
 
-    TEST REQUIREMENTS (MANDATORY):
+    TEST REQUIREMENTS:
     <specific tests that must be written>
-
-    ISSUE:
-    <issue data from .ai/logs/current-issue.json>
   """
 )
 ```

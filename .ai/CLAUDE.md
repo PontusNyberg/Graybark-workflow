@@ -82,7 +82,7 @@ Defined in `.claude/agents/`. Dispatched by main session via Agent tool with `is
 | **Backend** | `.claude/agents/backend-developer.md` | API, database, auth | API tests, integration |
 | **Architect** | `.claude/agents/tech-lead.md` | Config, CI/CD, shared code | Integration, config validation |
 
-### Advisors (do NOT code)
+### Advisors (don't code)
 
 | Agent | File | Consulted for |
 |-------|------|---------------|
@@ -121,11 +121,11 @@ Rules in `rules/always.md` apply **always**. Others are injected based on which 
 | Migration | `rules/on-migration.md` | Database migration files |
 | Testing | `rules/on-testing.md` | Test files |
 
-Do NOT load all rules — only those that match. Include relevant rules in the specialist prompt.
+Load only the rules that match, not all of them. Include those in the specialist prompt.
 
 ## Test requirements (hard gate)
 
-**Every specialist MUST write tests.** verify.sh blocks if tests are missing.
+Every specialist writes tests — verify.sh blocks if they are missing.
 
 TODO: Adjust file types and test patterns to match your project.
 
@@ -191,7 +191,7 @@ Keep specialist prompts under **~4000 tokens**. If it exceeds — trim the agent
 
 ### Anti-pattern: template patterns in prompts
 
-Do NOT use patterns like:
+Don't use patterns like:
 ```
 Thought: <what you think>
 Action: <what you do>

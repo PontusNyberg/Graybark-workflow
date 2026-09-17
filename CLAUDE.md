@@ -2,22 +2,23 @@
 
 TODO: Short project description. Tech stack, purpose, team.
 
-## Pre-flight (BLOCKING — before ALL coding)
+## Pre-flight (before any coding)
 
-Before writing or changing a single line of code, these steps MUST be completed:
+This is a gate, not a suggestion — quick fixes that skipped it have caused regressions.
+Complete these steps before changing a line of code:
 
 1. **Load** `.ai/rules/always.md`
 2. **Load** `.ai/workflows/implement-issue.md` and follow steps 1–4
 3. **Create** `.ai/logs/planned-files.txt` with all files to be changed
 4. **Load** relevant rules from the table below based on affected files
-5. **Delegate** to specialists via Agent tool with `isolation: "worktree"` — do NOT code yourself
+5. **Delegate** to specialists via Agent tool with `isolation: "worktree"` — don't code yourself
 
 If the user says "go ahead", "implement", or similar — start with step 1, NOT with code.
 Jumping straight to coding without pre-flight is a workflow violation.
 
 ### Pre-commit hook (secret scan)
 
-A defense-in-depth pre-commit hook in `.githooks/pre-commit` (if you create one) blocks commits with secret patterns (service-role keys, live API keys, JWTs, etc.). Activate the hook locally ONCE per clone:
+A defense-in-depth pre-commit hook in `.githooks/pre-commit` (if you create one) blocks commits with secret patterns (service-role keys, live API keys, JWTs, etc.). Activate the hook locally, once per clone:
 
 ```bash
 git config core.hooksPath .githooks
@@ -43,9 +44,6 @@ If you think any of the following — STOP. You're rationalizing away the workfl
 |---------|---------|
 | "This is just a simple change" | If it touches code → pre-flight applies (exception: <20 lines, see below) |
 | "I need to explore the code first" | Pre-flight comes BEFORE implementation exploration |
-| "I can quickly fix this without workflow" | Quick fixes without workflow have caused regressions before |
-| "This doesn't need formal process" | If the workflow applies → follow it. Period. |
-| "I'll just do a small thing first" | Workflow check BEFORE you do anything |
 | "The user seems to want it fast" | Fast = follow the workflow efficiently, not skip it |
 | "I already know what's needed" | Knowing the answer ≠ skipping the process |
 
@@ -56,10 +54,10 @@ For **sprint planning**: Follow `.ai/workflows/sprint-planning.md` (or run `bash
 For **retrospectives**: Run `bash .ai/scripts/retrospective.sh`.
 Full system documentation: `.ai/CLAUDE.md`.
 
-## Iteration logs (MANDATORY per issue)
+## Iteration logs (one per issue)
 
-Every issue MUST have a log file `.ai/logs/<issue-nr>.md` — even with 1 iteration.
-The log is critical during long conversations that get compacted.
+Every issue gets a log file `.ai/logs/<issue-nr>.md` — even with 1 iteration. It is what survives
+when a long conversation gets compacted, so the next session isn't starting blind.
 
 **Exception — small issues (direct coding allowed):**
 Issues that are ONLY text changes, renames, or config adjustments (<20 lines changed, no new files)
@@ -67,20 +65,20 @@ need neither iteration log nor specialist delegation. Code directly.
 
 **Format:** See `.ai/workflows/implement-issue.md` → Log format.
 
-## Sprint close (MANDATORY)
+## Sprint close
 
-When a sprint is complete (all issues implemented, pushed and PR created) you MUST:
+When a sprint is complete (all issues implemented, pushed and PR created):
 
 1. **Verify iteration logs** — every issue (except small/trivial) should have `.ai/logs/<issue-nr>.md`
 2. **Run retrospective** — write `docs/retros/sprint-retro-<date>.md` per `.ai/workflows/retrospective.md`
 3. **Update sprint tracker** — check off all issues in the tracking issue
 4. **Close already-implemented issues** — if an issue turns out to already be done, close with comment
 
-Do NOT wait for the user to remind you — this is part of the sprint workflow.
+Don't wait to be reminded — this is part of the sprint workflow.
 
 ## Rules
 
-ALWAYS load `.ai/rules/always.md`. Load other rules based on affected files:
+Always load `.ai/rules/always.md`. Load other rules based on affected files:
 
 | Files | Rule |
 |-------|------|
@@ -133,7 +131,7 @@ See `.ai/skills/parallel-dispatch.md` and `.ai/workflows/implement-issue.md` Ste
 
 ## Hard requirements
 
-1. **Feature branch + PR** — NEVER commit directly on main/master, work on branch and create PR
+1. **Feature branch + PR** — never commit directly on main/master; work on a branch and open a PR
 2. **Tests mandatory** — verify.sh blocks without tests. Adjust test placement rules per your framework.
 3. **Max 4 iterations** — then `needs-human`
 4. **Never commit** `.env`, credentials, `node_modules/`, `vendor/`

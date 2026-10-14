@@ -6,7 +6,7 @@
 # another language (e.g. Swedish) — translation alone is not drift. Drift =
 # differences in mechanics, steps, gates, rules or formats.
 
-version: 2.2.0
+version: 2.3.0
 
 # Synced files — same mechanics everywhere. Improvements flow both ways:
 # project -> Graybark (backport PR + version bump) and Graybark -> project.
@@ -16,11 +16,16 @@ core:
   - .ai/workflows/retrospective.md
   - .ai/workflows/skill-lifecycle.md
   - .ai/rules/always.md
+  # The shortcut-marker convention is generic, so this on-*.md file is CORE even
+  # though the `local` glob below matches the same name pattern. Explicit entries
+  # win over globs.
+  - .ai/rules/on-shortcut-markers.md
   - .ai/agents/reviewer-correctness.md
   - .ai/agents/reviewer-security.md
   - .ai/agents/reviewer-conventions.md
   - .ai/agents/reviewer-lifecycle.md
   - .ai/agents/reviewer-fresh-eyes.md
+  - .ai/agents/reviewer-skip-approver.md
   - .ai/skills/compound-learning.md
   - .ai/skills/parallel-dispatch.md
   - .ai/skills/ideate.md
@@ -28,7 +33,11 @@ core:
   - .ai/skills/incident-fix-scoping.md
   - .ai/skills/compress-logs.md
   - .ai/skills/workflow-sync.md
+  - .ai/skills/grill.md
+  - .ai/skills/shortcut-debt.md
+  - .ai/skills/repo-audit.md
   - .ai/scripts/evaluate-reviews.sh
+  - .ai/scripts/review-dir.sh
   - .claude/skills/ship-and-watch/SKILL.md
   - .claude/skills/fresh-review/SKILL.md
 
@@ -40,6 +49,7 @@ adapted:
   - .claude/hooks/safety-check.sh  # rule categories core; prod identifiers project
   - .claude/settings.json          # hook set core; exact wording/paths project
   - .ai/skills/triggers.yml        # orchestrator entries core; specialist skills project
+  - .ai/scripts/grill-comment.sh   # mechanics core; EXPECTED_SLUG constant project
 
 # Never synced — pure project domain. Templates here are examples only.
 # Entries are globs; files explicitly listed under core/adapted above take

@@ -90,7 +90,7 @@ The main things to customize:
 - **`CLAUDE.md`** — Your project name, tech stack, file paths, hard requirements
 - **`.claude/agents/*.md`** — Your specialists' expertise and framework knowledge
 - **`.ai/scripts/verify.sh`** — Your linter, type checker, and test commands
-- **`.ai/rules/on-*.md`** — Your coding conventions per domain
+- **`.ai/rules/on-*.md`** — Your coding conventions per domain (exception: `on-shortcut-markers.md` is shared core, not project-local — see `core-manifest.yml`)
 
 ### 3. Use it
 
@@ -116,15 +116,20 @@ That's it. The workflow handles the rest.
 │   ├── on-frontend.md           # Frontend conventions
 │   ├── on-backend.md            # Backend conventions
 │   ├── on-migration.md          # Database migration rules
-│   └── on-testing.md            # Test writing rules
+│   ├── on-testing.md            # Test writing rules
+│   └── on-shortcut-markers.md   # How reviewers handle `shortcut:` markers (core, not project-local)
 ├── agents/
 │   ├── reviewer-correctness.md  # "Does it fulfill the acceptance criteria?"
 │   ├── reviewer-security.md     # "Is it secure?"
 │   ├── reviewer-conventions.md  # "Does it follow our patterns?"
-│   └── reviewer-lifecycle.md    # "What happens across calls and module boundaries?"
+│   ├── reviewer-lifecycle.md    # "What happens across calls and module boundaries?"
+│   ├── reviewer-fresh-eyes.md   # "Does it survive contact with reality?" (no session context)
+│   └── reviewer-skip-approver.md # "May the three mandatory reviewers be skipped at all?"
 ├── scripts/
 │   ├── verify.sh                # Quality gate (customize this!)
-│   └── evaluate-reviews.sh      # Parses reviewer JSON verdicts
+│   ├── evaluate-reviews.sh      # Parses reviewer JSON verdicts + validates review skips
+│   ├── review-dir.sh            # Per-branch review artifact dir + skip validation (one impl)
+│   └── grill-comment.sh         # The only path grill.md may write to the issue tracker
 ├── skills/
 │   ├── compound-learning.md     # Post-implementation learning capture
 │   ├── parallel-dispatch.md     # Dependency analysis for parallel agents
@@ -133,6 +138,9 @@ That's it. The workflow handles the rest.
 │   ├── incident-fix-scoping.md  # Split incident fixes into ≤3 focused PRs
 │   ├── compress-logs.md         # Sprint-close log compression + archiving
 │   ├── workflow-sync.md         # Two-way sync with this template
+│   ├── grill.md                 # Clarify unclear AC via AskUserQuestion instead of stopping
+│   ├── shortcut-debt.md         # Ledger of `shortcut:`-marked deferrals
+│   ├── repo-audit.md            # Whole-repo review as a read-only report
 │   └── triggers.yml             # When to inject which skill
 └── logs/                        # Session-local (gitignored)
 
@@ -223,6 +231,7 @@ After copying into your project:
 - [ ] `.ai/rules/on-backend.md` — API framework, database, auth patterns
 - [ ] `.ai/rules/on-migration.md` — Your migration tool and naming conventions
 - [ ] `.ai/rules/on-testing.md` — Test runner, file placement, mocking strategy
+- [ ] `.ai/scripts/grill-comment.sh` — Set `EXPECTED_SLUG` to your `host/owner/repo`
 - [ ] `.ai/scripts/verify.sh` — **Critical:** add your linter, type checker, and test commands
 - [ ] `.ai/skills/triggers.yml` — Add skills for your recurring patterns
 - [ ] `.gitignore` — Your build output, dependencies, etc.

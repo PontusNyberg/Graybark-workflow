@@ -112,3 +112,38 @@ workflow-sync:
     - "template drift"
     - "backport"
   # Trigger: Sprint start, or when compound-learning/retro changed a core-manifest file
+
+grill:
+  file: .ai/skills/grill.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "grill"
+    - "unclear acceptance criteria"
+    - "needs clarification"
+    - "ambiguous scope"
+  # Trigger: Step 2 when the AC are unclear; decision gate in Step 4.
+  # Requires an interactive main session (AskUserQuestion) — never run headless.
+
+shortcut-debt:
+  file: .ai/skills/shortcut-debt.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "shortcut-debt"
+    - "shortcuts"
+    - "tech debt ledger"
+    - "deliberate shortcut"
+  # Trigger: Sprint start, manual, or after an incident
+
+repo-audit:
+  file: .ai/skills/repo-audit.md
+  specialist: orchestrator
+  files: []
+  keywords:
+    - "audit"
+    - "review the repo"
+    - "what is broken"
+    - "what should we fix"
+  # Trigger: Manual or before a release — whole-repo review, report only, no code change.
+  # Deliberately NOT sprint start (too heavy) and never part of implement-issue.

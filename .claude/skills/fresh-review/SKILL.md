@@ -32,6 +32,9 @@ Agent(
   model: "opus",
   prompt: """
     <contents of .ai/agents/reviewer-fresh-eyes.md>
+    <contents of .ai/rules/on-shortcut-markers.md>
+    You have repo access: read the shortcut exception list with
+    `git show origin/master:.ai/rules/always.md`, not from the diff.
 
     PR: #<PR_NR>   (repo: run `gh pr diff <PR_NR>` yourself)
     ROUND: <N>
@@ -53,6 +56,12 @@ For each issue, verify against the current code first (the reviewer can be wrong
   git commit -m "fix: address fresh-eyes review round <N>"
   git push || exit 1
   ```
+  On every round after the first, a review gate that compares the step-8 review round
+  against HEAD will report that the latest commits are **unreviewed** (the step-8 reviewers
+  ran before these fix commits). **That is expected in this loop, not an error** — the run
+  stays green; a hard fail here would only train people to bypass the gate. Starting a new
+  review round mid-loop is wrong: it would discard the step-8 verdicts the gate exists to
+  check.
 - **Valid nit** → fix if cheap, otherwise log as deferred in the PR body.
 - **False positive** → refute with a concrete reason, and carry the refutation into the next round's prompt (see step 2). Never silently drop a finding.
 

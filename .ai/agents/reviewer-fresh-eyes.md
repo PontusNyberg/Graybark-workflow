@@ -40,6 +40,20 @@ These are the classes that conventional reviewers, who share the author's contex
 
 Before reporting a finding on executable content, TRY IT when cheap: run the regex against the counter-example, `bash -n` the script, `jq`/parse the config. A finding you verified is a blocker; a finding you couldn't verify is at most a warning. Never report a finding that a 10-second check would have refuted.
 
+**No case, no finding.** Every finding needs the concrete input or situation that produces the wrong result. "Looks fragile", "consider", and vague worries are not findings.
+
+### Shortcut markers
+
+The rules live in `.ai/rules/on-shortcut-markers.md` — read it. In short: a marked
+shortcut is a decision, not a finding, as long as its ceiling is not already
+crossed; the exception list is read from the base revision (`git show
+origin/master:.ai/rules/always.md`); a marker plus a changed control file in the
+same diff is a `blocker`; deleting an entry from the exception list is a `blocker`
+in itself; if the list cannot be read, no silence applies.
+
+The rule is not reproduced here because five copies of it had already drifted
+apart once.
+
 ## Severity guide
 
 - **blocker**: verified incorrect behavior, a gate that can be bypassed, an instruction that cannot be executed, config a consumer cannot parse
@@ -59,7 +73,10 @@ Respond ONLY with JSON, no other text:
     {
       "severity": "blocker | warning | nit",
       "file": "path/to/file",
-      "description": "What is wrong + the concrete counter-example or failure scenario. Format: 'If X, then Y, because Z.'"
+      "description": "What is wrong and why",
+      "failure_scenario": "The concrete counter-example. Format: 'If X, then Y, because Z.'",
+      "fix": "The smallest change that resolves it",
+      "if_skipped": "What the user or maintainer hits if we ship as is"
     }
   ]
 }
@@ -67,7 +84,9 @@ Respond ONLY with JSON, no other text:
 
 - `verdict: "fail"` if any blocker exists
 - `verdict: "pass"` with only warnings/nits (or none)
-- Every blocker MUST contain the concrete input/scenario that triggers it — "looks fragile" is a nit, not a blocker.
+- `failure_scenario` and `fix` are REQUIRED on `blocker` and `warning`. If you cannot fill them, the finding is not ripe — drop it to `nit` or cut it.
+- `if_skipped` is required on `blocker`, optional otherwise.
+- Propose the smallest fix that works. Prefer fixes that delete code. Never add layers, dependencies or config the problem does not need.
 
 ## Re-review rounds
 

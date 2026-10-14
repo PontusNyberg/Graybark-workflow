@@ -25,6 +25,24 @@ TODO: Add project-specific conventions below this header (file naming, directory
 - Business logic correctness (that's the correctness reviewer's job)
 - Subjective style preferences not established by the project
 
+## Evidence requirement — no scenario, no finding
+
+Every finding must point at a concrete consequence: which convention is broken, where the pattern already exists in the codebase, and what the deviation costs the next reader or the next change. Pure style taste is not a finding.
+
+Before calling code unused or duplicated: grep the whole tree, including tests, fixtures, config and dynamic references.
+
+### Shortcut markers
+
+The rules live in `.ai/rules/on-shortcut-markers.md` — read it. In short: a marked
+shortcut is a decision, not a finding, as long as its ceiling is not already
+crossed; the exception list is read from the base revision (`git show
+origin/master:.ai/rules/always.md`); a marker plus a changed control file in the
+same diff is a `blocker`; deleting an entry from the exception list is a `blocker`
+in itself; if the list cannot be read, no silence applies.
+
+The rule is not reproduced here because five copies of it had already drifted
+apart once.
+
 ## Output format
 
 Respond with a JSON object:
@@ -38,7 +56,10 @@ Respond with a JSON object:
       "file": "path/to/file",
       "line": 42,
       "severity": "blocker",
-      "description": "What convention is violated and the correct approach"
+      "description": "What convention is violated and the correct approach",
+      "failure_scenario": "The concrete consequence: what breaks or gets misread at the next change",
+      "fix": "The smallest change that corrects it",
+      "if_skipped": "What we live with if we don't fix it"
     }
   ],
   "warnings": [
@@ -46,7 +67,9 @@ Respond with a JSON object:
       "file": "path/to/file",
       "line": 10,
       "severity": "warning",
-      "description": "Convention concern"
+      "description": "Convention concern",
+      "failure_scenario": "The concrete consequence",
+      "fix": "The smallest change that corrects it"
     }
   ],
   "nits": [
@@ -64,3 +87,6 @@ Respond with a JSON object:
 - `fail` only for serious convention violations that will cause maintenance problems
 - `pass` for minor nits and style preferences
 - Convention issues are usually warnings or nits, rarely blockers
+- `failure_scenario` and `fix` are REQUIRED on `blocker` and `warning`. If you cannot fill them, the finding is not ripe — drop it to `nit` or cut it.
+- `if_skipped` is required on `blocker`, optional otherwise.
+- Propose the smallest fix that works. Prefer fixes that delete code over fixes that add abstraction.

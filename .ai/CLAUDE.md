@@ -28,7 +28,7 @@ Claude Code (main session / orchestrator)
 
 **Dispatch method:** Agent tool with `isolation: "worktree"` — each specialist gets an isolated repo copy and edits files directly.
 
-**Important:** Subagents CANNOT spawn new agents. All orchestration happens in the main session.
+**Orchestration lives in the main session:** it dispatches specialists and reviewers, merges their branches and runs verify.sh.
 
 ## Worktree-based parallelism
 
@@ -146,10 +146,10 @@ After verify.sh, dispatch reviewers in parallel via Agent tool (without worktree
 git diff main...HEAD > /tmp/diff-full.txt
 
 # Dispatch all reviewers in the same message:
-Agent(description: "Review: correctness", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: security", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: conventions", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: lifecycle", prompt: "<reviewer-def + issue + diff>")  # conditional — only for stateful diffs (trigger in implement-issue Step 8)
+Agent(description: "Review: correctness", model: "opus", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: security", model: "opus", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: conventions", model: "sonnet", prompt: "<reviewer-def + issue + diff>")
+Agent(description: "Review: lifecycle", model: "opus", prompt: "<reviewer-def + issue + diff>")  # conditional — only for stateful diffs (trigger in implement-issue Step 8)
 Agent(description: "Review: specialist cross-review", prompt: "<cross-reviewer-def + issue + diff>")
 
 # Evaluate results
@@ -178,41 +178,18 @@ Skills live in `.ai/skills/` and are matched in Step 4b of implement-issue via `
 
 TODO: Add project-specific specialist skills (injected into specialist prompts) as patterns emerge.
 
-## Prompt construction (token efficiency)
+## Prompt construction
 
-### Prompt ordering
-
-Information in the middle of long prompts risks being "lost" (lost-in-middle). Structure specialist prompts:
-
-1. Agent definition (background/role) — first
-2. Rules + skills (constraints) — middle
-3. Issue context (background) — later
-4. **Work package + test requirements — LAST** (recency bias, most important)
-
-### Prompt budget
-
-Keep specialist prompts under **~4000 tokens**. If it exceeds — trim the agent definition and reference files the agent can read.
-
-### Anti-pattern: template patterns in prompts
-
-Do NOT use patterns like:
-```
-Thought: <what you think>
-Action: <what you do>
-Observation: <what you see>
-```
-
-The model interprets these as **output templates to imitate**, not instructions. Write imperative instructions instead: "Analyze X", "Implement Y", "Verify Z".
+Dispatch specialists with `subagent_type` so the agent definition — and its model tier — loads as the system prompt. The prompt itself carries the matching rules and skills, the issue, and the work package with its test requirements. For large reference material, pass file paths the specialist can read rather than trimming context the specialist needs.
 
 ## Anti-patterns
 
 1. **Specialist codes without tests** — verify.sh blocks
 2. **Main session codes everything itself** — delegate to specialist
-3. **Subagent tries to spawn subagent** — doesn't work, all orchestration in main session
-4. **Scope creep** — only what the issue requires
-5. **Infinite loop** — max 4 iterations
-6. **Lowered standards** — retrospectives must never lower quality
-7. **Over-consultation** — max 2 advisors per issue
-8. **Parallel dispatch with shared files** — guaranteed merge conflict, run sequentially
-9. **Worktree for advisors/reviewers** — unnecessary overhead, they don't change files
-10. **Skip dependency analysis** — always check file lists before parallel dispatch
+3. **Scope creep** — only what the issue requires
+4. **Infinite loop** — max 4 iterations
+5. **Lowered standards** — retrospectives must never lower quality
+6. **Over-consultation** — max 2 advisors per issue
+7. **Parallel dispatch with shared files** — guaranteed merge conflict, run sequentially
+8. **Worktree for advisors/reviewers** — unnecessary overhead, they don't change files
+9. **Skip dependency analysis** — always check file lists before parallel dispatch

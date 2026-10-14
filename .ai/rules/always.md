@@ -90,9 +90,9 @@ Applies to specialists during implementation AND the orchestrator at scope decis
 
 ## Testing
 
-- NEVER change a test to make it pass — fix the code instead
-- If you add new functionality — add tests if test patterns already exist
-- If there are no tests in the current module — don't create test infrastructure unless requested
+- Don't change a test to make it pass — fix the code instead
+- New source files need a matching test file (verify.sh fails without one); add tests for changed behavior following the module's existing test patterns
+- If the module has no test infrastructure at all, report that instead of building a test setup the issue didn't ask for
 
 ## Verification (evidence requirement)
 
@@ -108,30 +108,8 @@ Applies to specialists during implementation AND the orchestrator at scope decis
 - Linter pass (doesn't prove correctness)
 - Specialist reported success (verify independently)
 
-**Red flags in your own language:** If you write "should", "probably", "seems to work" — STOP. Run the command and show evidence.
-
 **Date empirical platform findings.** When you verify a non-obvious platform behavior (GitHub API quirk, framework peculiarity, cloud-provider behavior) and document it in a workflow/skill file — record date + context: *"Verified empirically on PR #X, YYYY-MM-DD"*. It separates proven knowledge from assumption and shows when a finding may have gone stale.
 
 ## Systematic debugging
 
-When verify.sh fails or tests don't pass — follow this order. Don't guess.
-
-**Phase 1: Understand the error**
-- Read the entire error message (not just the first line)
-- Identify exactly which file and line fails
-- Reproduce the error — run the command again to confirm
-
-**Phase 2: Analyze cause**
-- What changed since it last worked?
-- Is there similar working code in the codebase? Compare.
-- Trace the data flow backwards from the failure point
-
-**Phase 3: One fix at a time**
-- Change ONE thing, re-run, evaluate
-- If the fix didn't help — undo and try next hypothesis
-- Never change multiple things simultaneously
-
-**Phase 4: Escalate on repeated failures**
-- If 3+ fix attempts fail → question the approach, not just the code
-- Maybe the architecture is wrong, not the implementation
-- Log every attempt in the iteration log
+When verify.sh fails or tests don't pass, find the root cause before changing code, and undo fix attempts that didn't help so they don't pile up. Log every attempt in the iteration log. After 3 failed attempts, question the approach rather than the code — the escalation rubric in `implement-issue.md` builds on that log.

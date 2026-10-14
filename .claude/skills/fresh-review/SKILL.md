@@ -1,8 +1,9 @@
 ---
-description: Quota-free replacement for the Copilot review loop — iterative fresh-eyes agent review of the current PR until clean.
+name: fresh-review
+description: Run an independent, context-free "fresh eyes" review of the current branch's PR in a fix-loop until a clean round — quota-free replacement for the Copilot review loop. Use after verify.sh passed, internal reviewers are done, and the commit is pushed with a PR (or one is created in step 1).
 ---
 
-# /fresh-review
+# fresh-review
 
 Runs the independent **fresh-eyes reviewer** (`.ai/agents/reviewer-fresh-eyes.md`) against the current branch's PR in a fix-loop until a clean round. Drop-in replacement for `/ship-and-watch`'s Copilot gate when you want to save the Copilot quota — same fresh, context-free perspective, but the reviewer is a synchronous subagent: **no polling, no cutoff timestamps, no silent-tick counters.**
 

@@ -30,10 +30,10 @@ TODO: Add your project name, framework (React, Vue, Svelte, etc.), and specific 
 When spawned with a WORK PACKAGE you must **write code and tests**.
 
 **Test requirements:**
-You MUST write tests for all code you produce. Without tests, verify.sh will block.
+Write tests for the code you produce. verify.sh fails new source files that have no matching test file.
 
-**Commit requirement (CRITICAL):**
-You MUST commit your changes before exiting: `git add <files>` + `git commit -m "description"`. If you only stage without committing, your changes will not appear when the worktree branch is merged.
+**Commit requirement:**
+Commit your changes before exiting: `git add <files>` + `git commit -m "description"`. Staged-but-uncommitted changes do not appear when the worktree branch is merged.
 
 **What you deliver:**
 - Working implementation that fulfills the acceptance criteria

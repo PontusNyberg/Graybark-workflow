@@ -18,7 +18,7 @@ TODO: Define your project's file/folder conventions:
 - Shared types should be imported from a central location
 - Component-specific types defined in same file or local types directory
 - API response types should match backend schema
-- NEVER use `any` — define correct types
+- Define correct types instead of `any` (see `always.md` → Strict typing for the justified exception)
 
 ## Loading and Error States
 
@@ -29,7 +29,7 @@ TODO: Define your project's file/folder conventions:
 
 ## Null Safety
 
-- ALWAYS check that API responses aren't null/undefined before `.length`, `.map()`, etc.
+- Check that API responses aren't null/undefined before `.length`, `.map()`, etc.
 - Use `?? []` for arrays, `?? ''` for strings
 - Avoid optional chaining chains that hide bugs — handle null explicitly
 
@@ -50,7 +50,7 @@ TODO: Define your styling approach (CSS modules, Tailwind, styled-components, et
 - **Feedback:** Visual feedback on press within 80-150ms
 - **Loading buttons:** Disable + spinner during async operations
 
-### Accessibility (CRITICAL)
+### Accessibility
 - **Contrast:** 4.5:1 for normal text, 3:1 for large text (WCAG AA)
 - **Semantic HTML:** Use `button`, `nav`, `main`, `label` — not `div` with onClick
 - **Forms:** Visible label per input. Error message placed under the field, not in toast.

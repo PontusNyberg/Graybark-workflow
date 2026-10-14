@@ -58,7 +58,7 @@ If verify or review fails → the orchestrator sends feedback to the specialist 
 | **Quality gate** | `verify.sh` | Blocks on lint, type, test, secret, scope failures |
 | **Ship-check** | `ready.sh` | Branch-ship-readiness audit before landing |
 | **Safety hook** | `.claude/hooks/safety-check.sh` | PreToolUse hook blocking dangerous commands (DROP TABLE, force push, rm -rf, secret staging) — with its own test suite |
-| **Commands** | `/fresh-review`, `/ship-and-watch` | Iterative external-style review: isolated fresh-eyes agent (quota-free) or Copilot loop |
+| **Command skills** | `/fresh-review`, `/ship-and-watch` | Iterative external-style review: isolated fresh-eyes agent (quota-free) or Copilot loop — Claude Code skills triggerable by user (`/name`) or model (Skill tool) |
 | **Skills** | compound-learning, parallel-dispatch, ideate, backlog-reconcile, incident-fix-scoping, compress-logs, workflow-sync | Reusable agent routines |
 | **Rules** | always, on-frontend, on-backend, on-migration, on-testing | Injected into agent prompts based on affected files |
 | **Sync** | `core-manifest.yml` + `VERSION` + workflow-sync skill | Keep downstream projects and this template in sync |
@@ -144,8 +144,9 @@ That's it. The workflow handles the rest.
 │   ├── product-designer.md      # UX advice (no code)
 │   ├── product-skeptic.md       # Scope control (no code)
 │   └── TEAM.md                  # Who does what
-├── commands/
-│   └── ship-and-watch.md        # /ship-and-watch — automated Copilot review loop
+├── skills/
+│   ├── fresh-review/SKILL.md    # /fresh-review — isolated fresh-eyes review loop (quota-free)
+│   └── ship-and-watch/SKILL.md  # /ship-and-watch — automated Copilot review loop
 ├── hooks/
 │   ├── safety-check.sh          # PreToolUse hook: blocks dangerous commands
 │   └── test-safety-hook.sh      # Test suite for the safety hook

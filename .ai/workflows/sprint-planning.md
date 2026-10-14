@@ -25,6 +25,7 @@ but the script is a convenience, not a requirement.
 Before planning begins:
 - Run `.ai/skills/workflow-sync.md` — keep the workflow core in sync with the shared template
 - Run `.ai/skills/backlog-reconcile.md` — make backlog/plans mirror the actual code
+- Run `.ai/skills/shortcut-debt.md` — the ledger of deliberate shortcuts; see which ceilings have been crossed
 
 ### Step 1: Gather data
 
@@ -115,7 +116,10 @@ Agent(
 **Handle the advisor's feedback:**
 - Issues flagged as "not now" → candidates for backlog/excluded
 - Issues to break down → create sub-issues before including them
-- Unclear issues → `needs-clarification`, do not include in the sprint
+- Unclear issues → `needs-clarification`, do not include in the sprint. Do **not** run
+  `grill.md` here — it belongs to implementation (Step 2), where the ambiguity blocks
+  concrete work. At planning time the right move is to defer the issue, not to interview
+  out an answer about something that may never enter the sprint.
 - Present the advisor's objections to the user in the summary
 
 ### Step 4: Prioritize with MoSCoW

@@ -100,5 +100,8 @@ Retrospective discovers pattern
 | `incident-fix-scoping.md` | Orchestrator | Split incident fixes into at most 3 focused PRs (Step 4a) |
 | `compress-logs.md` | Orchestrator | Extract lessons from iteration logs at sprint close, archive raw logs |
 | `workflow-sync.md` | Orchestrator | Keep the workflow core in sync with the shared template (upstream) |
+| `grill.md` | Orchestrator | Clarify unclear acceptance criteria via `AskUserQuestion` instead of stopping (Step 2 + Step 4 decision gate) |
+| `shortcut-debt.md` | Orchestrator | Ledger of `shortcut:`-marked deferrals; flags crossed ceilings (sprint start) |
+| `repo-audit.md` | Orchestrator | Whole-repo review as a read-only report (manual / before a release) |
 
 TODO: Add project-specific specialist skills as patterns emerge.

@@ -47,6 +47,8 @@ git merge feature-branch --no-edit -m "merge: description"
 
 If a necessary tool only has interactive mode → stop and ask the user to run it instead. Hanging the session wastes tokens and blocks other work.
 
+**Exception: `AskUserQuestion` in the main session.** The rule above covers console and editor prompts started inside a shell — they hang the process and nobody can answer. `AskUserQuestion` is harness-handled: it is built to ask the human and returns a structured answer. It is the mechanism `.ai/skills/grill.md` uses — in Step 2 and at the decision gate in Step 4. Subagents do not have the tool and are not covered by the exception.
+
 ## Git
 
 - Use Conventional Commits: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`
@@ -74,6 +76,42 @@ If a necessary tool only has interactive mode → stop and ask the user to run i
 - **Five Whys on bug fixes** — ask "why?" until you find root cause, not just symptoms. Fix the cause, not the effect.
 - **Poka-Yoke** — design code that makes it hard to make mistakes (types, enums, required params > optional + runtime validation).
 - **Build only what's needed** (YAGNI) — no speculative code for future requirements.
+
+### Deliberate shortcuts are marked
+
+If you take a shortcut with a known limit — a solution that holds now but not forever — write a comment in exactly this form on the preceding line, or at the end of the same line:
+
+```ts
+// shortcut: <the limit>, <what should trigger the upgrade>
+```
+
+```ts
+// shortcut: holds to ~500 records per account, switch to pagination when a user passes that
+const all = await fetchAllRecords(accountId);
+```
+
+The ceiling says where the solution stops holding. The trigger says what should make us revisit it. Without a trigger the marker rots — a deferral nobody returns to. Always write the trigger. (How a reviewer grades a marker with no trigger is in `.ai/rules/on-shortcut-markers.md` rule 5 — that text is the one that governs at review time.)
+
+**The ceiling must be checkable** — a number or a named condition ("~500 records per account", "Android < 13", "more than one device per user"). A ceiling written as prose ("fine for typical cases") can never be shown to be crossed, and the marker then becomes permanent immunity from review instead of a tracked deferral. An uncheckable ceiling counts as no ceiling: the marker then silences nothing, and the underlying finding is reported at the severity it would have had without the marker. The marker itself is a `nit`.
+
+Two consequences:
+
+- **Reviewers do not flag a marked shortcut.** It is a decision, not a finding — except when the ceiling is already crossed by today's reality.
+- **`.ai/skills/shortcut-debt.md` collects them** into a ledger at sprint start, so deferrals are tracked instead of forgotten.
+
+**This may never be shortcut — the marker does not save it.** Reviewers treat a `shortcut:` marker on any of the items below as a `blocker`. Fix it instead.
+
+- security
+- validation at trust boundaries
+- error handling that prevents data loss
+- accessibility
+- anything the user explicitly asked for
+
+One entry per line, deliberately: a deletion is then a `-` line in the diff and can be told apart from a rewording. As a prose sentence the two were indistinguishable, and the rule below was therefore unenforceable.
+
+The list above is an acceptance criterion, not prose. Reviewers read it from the base revision, and **a diff that deletes an entry from it is a `blocker` in itself** — even with no marker in the same diff. Additions are free. A rewording that makes an entry **narrower** counts as a deletion — it is the scope that is gated, not the line. The rules for how reviewers handle markers live in `.ai/rules/on-shortcut-markers.md`.
+
+Does not apply to trivial simplifications. It applies when you **knowingly** declined pagination, an edge case, or internal robustness not covered by the list above.
 
 ### Decision ladder before generating code
 

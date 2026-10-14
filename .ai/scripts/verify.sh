@@ -316,8 +316,37 @@ section "Review Gate"
 
 CURRENT_BRANCH=$(git branch --show-current 2>/dev/null || echo "")
 if [[ "$CURRENT_BRANCH" == sprint* || "$CURRENT_BRANCH" == feat/* || "$CURRENT_BRANCH" == fix/* || "$CURRENT_BRANCH" == hotfix/* ]]; then
+  # The artifact directory and the skip validation come from review-dir.sh — the
+  # ONE implementation. A local copy that drifts would make the round write in one
+  # directory and this gate read in another, i.e. silent green.
+  REVIEW_LIB="$(dirname "$0")/review-dir.sh"
+  if [ ! -f "$REVIEW_LIB" ]; then
+    fail "Missing $REVIEW_LIB — the review gate cannot resolve the artifact directory"
+    RD=""
+  else
+    # shellcheck source=./review-dir.sh
+    source "$REVIEW_LIB"
+    RD="$(review_resolve_dir "")"
+  fi
+
+  # An approved skip means the three reviewers were never dispatched. Without this
+  # branch the gate would report "Reviews missing" for exactly the case that was
+  # just approved.
+  SKIP_STATE=1
+  if [ -n "$RD" ]; then
+    SKIP_MSG=$(review_skip_check "$RD") && SKIP_STATE=0 || SKIP_STATE=$?
+  fi
+
+  if [ "$SKIP_STATE" -eq 0 ]; then
+    warn "Review gate: $SKIP_MSG"
+  elif [ "$SKIP_STATE" -eq 2 ]; then
+    fail "Review gate: $SKIP_MSG"
+  else
+    [ -z "${SKIP_MSG:-}" ] || warn "Review gate: $SKIP_MSG"
+  fi
+
   # Lifecycle is conditional (stateful diffs only — see implement-issue Step 8) and handled separately below
-  REVIEW_FILES=(/tmp/review-correctness.json /tmp/review-security.json /tmp/review-conventions.json)
+  REVIEW_FILES=("$RD/review-correctness.json" "$RD/review-security.json" "$RD/review-conventions.json")
   MISSING_REVIEWS=()
   FAILED_REVIEWS=()
 
@@ -336,14 +365,16 @@ if [[ "$CURRENT_BRANCH" == sprint* || "$CURRENT_BRANCH" == feat/* || "$CURRENT_B
   done
 
   # Conditional lifecycle review: check verdict only if the reviewer was dispatched
-  if [ -s /tmp/review-lifecycle.json ]; then
-    verdict=$(grep -o '"verdict"[[:space:]]*:[[:space:]]*"[^"]*"' /tmp/review-lifecycle.json 2>/dev/null | head -1 | grep -o '"[^"]*"$' | tr -d '"')
+  if [ -s "$RD/review-lifecycle.json" ]; then
+    verdict=$(grep -o '"verdict"[[:space:]]*:[[:space:]]*"[^"]*"' "$RD/review-lifecycle.json" 2>/dev/null | head -1 | grep -o '"[^"]*"$' | tr -d '"')
     if [ "$verdict" = "fail" ]; then
       FAILED_REVIEWS+=("lifecycle")
     fi
   fi
 
-  if [ ${#MISSING_REVIEWS[@]} -gt 0 ]; then
+  if [ "$SKIP_STATE" -eq 0 ]; then
+    pass "Review gate — reviewers skipped with an agent-approved reason (see warning above)"
+  elif [ ${#MISSING_REVIEWS[@]} -gt 0 ]; then
     fail "Reviews missing: ${MISSING_REVIEWS[*]} — run parallel review before commit"
   elif [ ${#FAILED_REVIEWS[@]} -gt 0 ]; then
     fail "Reviews with blockers: ${FAILED_REVIEWS[*]} — fix blockers before commit"

@@ -97,6 +97,7 @@ Defined in `.claude/agents/`. Dispatched by main session via Agent tool with `is
 | **Correctness** | `.ai/agents/reviewer-correctness.md` | Acceptance criteria, logic, edge cases |
 | **Security** | `.ai/agents/reviewer-security.md` | Auth, injections, data leaks |
 | **Conventions** | `.ai/agents/reviewer-conventions.md` | Code style, patterns |
+| **Skip-Approver** (optional) | `.ai/agents/reviewer-skip-approver.md` | Decides whether a diff is risk-free enough to skip the three mandatory reviewers |
 | **Lifecycle** (conditional) | `.ai/agents/reviewer-lifecycle.md` | State machines, signal journeys across module boundaries, resource cleanup, second-occurrence bugs — dispatched only for stateful diffs |
 
 ## Specialist routing — who codes what?
@@ -122,6 +123,7 @@ Rules in `rules/always.md` apply **always**. Others are injected based on which 
 | Backend | `rules/on-backend.md` | Backend file changes |
 | Migration | `rules/on-migration.md` | Database migration files |
 | Testing | `rules/on-testing.md` | Test files |
+| Review | `rules/on-shortcut-markers.md` | Injected into every reviewer dispatch |
 
 Do NOT load all rules — only those that match. Include relevant rules in the specialist prompt.
 
@@ -146,10 +148,10 @@ After verify.sh, dispatch reviewers in parallel via Agent tool (without worktree
 git diff main...HEAD > /tmp/diff-full.txt
 
 # Dispatch all reviewers in the same message:
-Agent(description: "Review: correctness", model: "opus", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: security", model: "opus", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: conventions", model: "sonnet", prompt: "<reviewer-def + issue + diff>")
-Agent(description: "Review: lifecycle", model: "opus", prompt: "<reviewer-def + issue + diff>")  # conditional — only for stateful diffs (trigger in implement-issue Step 8)
+Agent(description: "Review: correctness", model: "opus", prompt: "<reviewer-def + .ai/rules/on-shortcut-markers.md + issue + diff>")
+Agent(description: "Review: security", model: "opus", prompt: "<reviewer-def + .ai/rules/on-shortcut-markers.md + issue + diff>")
+Agent(description: "Review: conventions", model: "sonnet", prompt: "<reviewer-def + .ai/rules/on-shortcut-markers.md + issue + diff>")
+Agent(description: "Review: lifecycle", model: "opus", prompt: "<reviewer-def + .ai/rules/on-shortcut-markers.md + issue + diff>")  # conditional — only for stateful diffs (trigger in implement-issue Step 8)
 Agent(description: "Review: specialist cross-review", prompt: "<cross-reviewer-def + issue + diff>")
 
 # Evaluate results
@@ -175,6 +177,9 @@ Skills live in `.ai/skills/` and are matched in Step 4b of implement-issue via `
 | `skills/incident-fix-scoping.md` | Orchestrator | Issue labeled `incident`/`postmortem` or branch `hotfix/*` |
 | `skills/compress-logs.md` | Orchestrator | Sprint close — final step of the retrospective |
 | `skills/workflow-sync.md` | Orchestrator | Sprint start, or when a core-manifest file changed |
+| `skills/grill.md` | Orchestrator | Step 2 when the AC are unclear; decision gate in Step 4 |
+| `skills/shortcut-debt.md` | Orchestrator | Sprint start, manual, or after an incident — ledger of deliberate shortcuts |
+| `skills/repo-audit.md` | Orchestrator | Manual or before a release — whole-repo review, report only |
 
 TODO: Add project-specific specialist skills (injected into specialist prompts) as patterns emerge.
 

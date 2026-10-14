@@ -65,6 +65,7 @@ ALWAYS load `.ai/rules/always.md`. Load other rules based on affected files:
 | `api/` or backend paths | `.ai/rules/on-backend.md` |
 | Database migrations | `.ai/rules/on-migration.md` |
 | `*_test.*`, `*.test.*` | `.ai/rules/on-testing.md` |
+| Every reviewer dispatch | `.ai/rules/on-shortcut-markers.md` |
 
 TODO: Adjust the table above to match your project structure.
 
@@ -95,7 +96,7 @@ New skills require PR review. See `.ai/workflows/skill-lifecycle.md`.
 | Scope, prioritization (advisor) | TODO: Name | `.claude/agents/product-skeptic.md` |
 | UX (advisor) | TODO: Name | `.claude/agents/product-designer.md` |
 
-**Reviewers:** correctness, security, conventions always; lifecycle conditionally (stateful diffs — deterministic trigger in implement-issue Step 8) — `.ai/agents/reviewer-*.md`. Plus an optional specialist cross-reviewer.
+**Reviewers:** correctness, security, conventions always; lifecycle conditionally (stateful diffs — deterministic trigger in implement-issue Step 8) — `.ai/agents/reviewer-*.md`. Plus an optional specialist cross-reviewer. Every reviewer dispatch also carries `.ai/rules/on-shortcut-markers.md`. A risk-free diff may skip the three mandatory reviewers only with an approval from `.ai/agents/reviewer-skip-approver.md` (implement-issue Step 8).
 
 ## Parallel dispatch (worktrees)
 
